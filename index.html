@@ -90,7 +90,7 @@ body.light .cm{color:#92400e}
   .lscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:visible}
   table.mt,table.et{min-width:520px}
   .eq-sticky-hdr{position:static}.pg{position:static}
-}</style></head><body><link rel="preconnect" href="https://fonts.googleapis.com">
+}</style></head><body class="light"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <div class="hdr">
   <div class="logo">&#9643;</div>
@@ -117,7 +117,7 @@ body.light .cm{color:#92400e}
   </div>
   <button class="tbtn gr" onclick="refreshAll()">&#8635; Refresh Prices</button>
   <button class="tbtn" id="arBtn" onclick="toggleAR()">&#9711; Auto-refresh</button>
-  <button class="tbtn" id="themeBtn" onclick="toggleTheme()" style="margin-left:auto">&#9788; Light</button>
+  <button class="tbtn" id="themeBtn" onclick="toggleTheme()" style="margin-left:auto">🌙 Dark</button>
   <span class="ar-info" id="arInfo"></span>
 </div>
 <div class="body-wrap">
@@ -214,8 +214,35 @@ function doSort(k){var c=S[k].sort,d=S[k].dir;S[k].filt.sort(function(a,b){var a
 function ltpH(r){var v=pCache[r.und];if(v!=null){var cl=v>r.lp?'up':v<r.lp?'dn':'';return'<span class="'+cl+'">'+fN(v)+'</span>';}return'<span class="na">'+fN(r.lp)+'</span>';}
 /* futLp[und] = baked-in lp from the corresponding MCX FUT row, populated at init */
 var futLp={};
-/* Margin % by segment: Index FUT 12%, Stock FUT 17%, MCX FUT 10%, MCX OPT 15%, BFO 12% */
-function mPct(r){if(r.exch==='MCX')return r.type==='OPT'?0.15:0.10;if(r.exch==='BFO')return 0.12;if(r.exch==='NFO'&&(r.sym.indexOf('NIFTY')>=0||r.sym.indexOf('SENSEX')>=0||r.sym.indexOf('BANKNIFTY')>=0||r.sym.indexOf('FINNIFTY')>=0||r.sym.indexOf('MIDCP')>=0))return 0.12;return 0.17;}
+/* Per-underlying MCX margin rates from Zerodha margin calculator (SPAN+Exposure combined) */
+var MCX_MARGIN={
+  GOLD:0.0925,GOLDM:0.0925,GOLDGUINEA:0.0925,GOLDPETAL:0.0925,GOLDTEN:0.0925,
+  SILVER:0.1341,SILVERM:0.1275,SILVERMIC:0.1275,SILVER100:0.1273,
+  COPPER:0.0925,
+  ALUMINIUM:0.0933,ALUMINI:0.0928,
+  ZINC:0.0925,ZINCMINI:0.0925,
+  LEAD:0.0780,LEADMINI:0.0733,
+  NATURALGAS:0.1470,NATGASMINI:0.1470,
+  CRUDEOIL:0.3125,CRUDEOILM:0.3125,
+  COTTON:0.0925,MENTHAOIL:0.0980,COTTONOIL:0.1125,
+  MCXBULLDEX:0.0987,MCXMETLDEX:0.0600
+};
+function mPct(r){
+  var u=r.und;
+  if(r.exch==='MCX'){
+    /* OPT uses same rate as underlying FUT */
+    var k=MCX_MARGIN.hasOwnProperty(u)?u:(r.type==='OPT'&&u?u:null);
+    return k&&MCX_MARGIN[k]?MCX_MARGIN[k]:0.10;
+  }
+  if(r.exch==='BFO')return 0.11;
+  if(r.exch==='NFO'){
+    if(u==='MIDCPNIFTY')return 0.1215;
+    if(u==='NIFTY'||u==='BANKNIFTY'||u==='FINNIFTY')return 0.1133;
+    if(u==='NIFTYNXT50'||u==='NIFTYFPI')return 0.1151;
+    return 0.17;
+  }
+  return 0.17;
+}
 function mgnH(r){
   var price=pCache[r.und]!=null?pCache[r.und]:(r.exch==='MCX'&&r.type==='OPT'&&futLp[r.und]?futLp[r.und]:r.lp);
   if(!price||price<=0||!r.lot)return'<span style="color:var(--muted)">—</span>';
@@ -251,12 +278,14 @@ var YT={
   "ZINC":"ZNC=F","ZINCMINI":"ZNC=F"
 };
 function yTicker(und){if(YT.hasOwnProperty(und))return YT[und];return und+'.NS';}
-var darkMode=true;
+var darkMode=false;
 function toggleTheme(){
   darkMode=!darkMode;
   document.body.classList.toggle('light',!darkMode);
   document.getElementById('themeBtn').textContent=darkMode?'☀ Light':'🌙 Dark';
 }
+/* Apply light mode on load */
+document.body.classList.add('light');
 async function fetchOne(und,btn){
   if(btn){btn.textContent='…';btn.disabled=true;}
   var ticker=yTicker(und);
