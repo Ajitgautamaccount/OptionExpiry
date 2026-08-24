@@ -114,7 +114,7 @@ table.et td{padding:7px 14px;white-space:nowrap}
     <div class="phdr gi"><div class="pico">&#9733;</div><h3>Index Futures</h3><span class="pcnt" id="cnt-idx">—</span></div>
     <div class="lscroll">
       <table class="mt"><thead><tr>
-        <th onclick="sortL('idx','sym')">Symbol</th>
+        <th onclick="sortL('idx','name')">Name</th>
         <th onclick="sortL('idx','expiry')">Expiry</th>
         <th onclick="sortL('idx','lot')" style="text-align:right">Lot</th>
         <th style="text-align:right">LTP</th>
@@ -127,7 +127,7 @@ table.et td{padding:7px 14px;white-space:nowrap}
     <div class="phdr gm"><div class="pico">&#9874;</div><h3>MCX Futures &amp; Options</h3><span class="pcnt" id="cnt-mcx">—</span></div>
     <div class="lscroll">
       <table class="mt"><thead><tr>
-        <th onclick="sortL('mcx','sym')">Symbol</th>
+        <th onclick="sortL('mcx','name')">Name</th>
         <th onclick="sortL('mcx','expiry')">Expiry</th>
         <th onclick="sortL('mcx','lot')" style="text-align:right">Lot</th>
         <th style="text-align:right">LTP</th>
@@ -142,7 +142,7 @@ table.et td{padding:7px 14px;white-space:nowrap}
       <table class="et" style="table-layout:fixed;width:100%">
         <colgroup><col style="width:155px"><col style="width:85px"><col style="width:65px"><col style="width:110px"><col style="width:115px"></colgroup>
         <thead><tr>
-          <th onclick="sortR('sym')">Symbol</th>
+          <th onclick="sortR('name')">Name</th>
           <th onclick="sortR('expiry')">Expiry</th>
           <th onclick="sortR('lot')" style="text-align:right">Lot &#8595;</th>
           <th style="text-align:right">LTP</th>
@@ -212,7 +212,7 @@ function mgnH(r){
 }
 function rL(k){
   var isIdx=k==='idx';var h='';
-  S[k].filt.forEach(function(r,i){var sc=isIdx?'cs idx-c':'cs mcx-c';var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';var badge=(!isIdx&&r.type)?'<span class="type-badge '+(r.type==='OPT'?'opt-badge':'fut-badge')+'">'+r.type+'</span>':'';h+='<tr class="'+(i%2?'':'alt')+'"><td class="'+sc+'">'+r.sym+badge+'</td><td class="ce">'+fD(r.expiry)+'</td><td class="cl">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="cp">'+fb+ltpH(r)+'</td><td class="cm">'+mgnH(r)+'</td></tr>';});
+  S[k].filt.forEach(function(r,i){var sc=isIdx?'cs idx-c':'cs mcx-c';var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';var badge=(!isIdx&&r.type)?'<span class="type-badge '+(r.type==='OPT'?'opt-badge':'fut-badge')+'">'+r.type+'</span>':'';h+='<tr class="'+(i%2?'':'alt')+'"><td class="'+sc+'">'+r.name+badge+'</td><td class="ce">'+fD(r.expiry)+'</td><td class="cl">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="cp">'+fb+ltpH(r)+'</td><td class="cm">'+mgnH(r)+'</td></tr>';});
   document.getElementById(k+'-tb').innerHTML=h||'<tr><td colspan="5" class="empty">No data</td></tr>';
   document.getElementById('cnt-'+k).textContent=S[k].filt.length;
   if(k==='idx')document.getElementById('s-idx').textContent=S.idx.filt.length;
@@ -220,7 +220,7 @@ function rL(k){
 }
 function rEq(){
   var data=S.eq.filt,pg=S.eq.pg,PG=S.eq.PG,total=data.length;var s=(pg-1)*PG,e=Math.min(pg*PG,total),h='';
-  for(var i=s;i<e;i++){var r=data[i];var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';h+='<tr class="'+(i%2===0?'alt':'')+'"><td class="es" title="'+r.name+'">'+r.sym+'</td><td class="ee">'+fD(r.expiry)+'</td><td class="el">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="ep">'+fb+ltpH(r)+'</td><td class="cm">'+mgnH(r)+'</td></tr>';}
+  for(var i=s;i<e;i++){var r=data[i];var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';h+='<tr class="'+(i%2===0?'alt':'')+'"><td class="es">'+r.name+'</td><td class="ee">'+fD(r.expiry)+'</td><td class="el">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="ep">'+fb+ltpH(r)+'</td><td class="cm">'+mgnH(r)+'</td></tr>';}
   document.getElementById('eq-tb').innerHTML=h||'<tr><td colspan="5" class="empty">No results</td></tr>';
   document.getElementById('cnt-eq').textContent=total;document.getElementById('s-eq').textContent=total;
   bPg(total,pg,PG);
