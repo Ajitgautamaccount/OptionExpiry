@@ -123,72 +123,35 @@ body.light .cm{color:#92400e}
 </div>
 <!-- Notification Modal -->
 <div id="notif-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;overflow-y:auto;padding:16px 0">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;width:min(520px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.3)">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;width:min(500px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.3)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h3 style="font-size:.95rem;font-weight:700;color:var(--text)">&#128276; Expiry Notifications</h3>
+      <h3 style="font-size:.95rem;font-weight:700;color:var(--text)">&#128276; Telegram Notifications</h3>
       <button onclick="closeNotifModal()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--muted);line-height:1">&#10005;</button>
     </div>
-    <!-- Tabs -->
-    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:18px">
-      <button id="nf-tab-email" onclick="nfTab('email')" style="background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px">&#128231; Email</button>
-      <button id="nf-tab-wa" onclick="nfTab('wa')" style="background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px">&#9992; Telegram</button>
+    <p style="font-size:.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Sends alerts for <strong>Index &amp; MCX</strong> instruments — daily (1 day before expiry) and weekly (every Monday, all expiries that week).</p>
+    <div style="background:#ebf5fb;border:1px solid #90caf9;border-radius:8px;padding:10px 13px;margin-bottom:16px;font-size:.72rem;color:#0d47a1;line-height:1.8">
+      <strong>One-time setup:</strong><br>
+      1. Open Telegram → search <strong>@BotFather</strong> → send <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">/newbot</code> → copy the Bot Token<br>
+      2. Message your bot → then message <strong>@userinfobot</strong> to get your Chat ID<br>
+      3. Each recipient must message the bot first before they can receive alerts
     </div>
-
-    <!-- Email Tab -->
-    <div id="nf-pane-email">
-      <p style="font-size:.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Sends an HTML email <strong>1 day before</strong> and <strong>on expiry day</strong>. Powered by <a href="https://www.emailjs.com" target="_blank" style="color:var(--accent)">EmailJS</a> (free, 200/month, no backend). <a href="https://www.emailjs.com/docs/introduction/how-does-emailjs-work/" target="_blank" style="color:var(--accent)">Setup guide ↗</a></p>
-      <div style="display:flex;flex-direction:column;gap:9px">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600">Recipient Email</label>
-        <input id="nf-email" type="email" placeholder="you@example.com" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">EmailJS Public Key <span style="font-weight:400">(Account → API Keys)</span></label>
-        <input id="nf-pubkey" type="text" placeholder="xxxxxxxxxxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">EmailJS Service ID <span style="font-weight:400">(Email Services tab)</span></label>
-        <input id="nf-svcid" type="text" placeholder="service_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">EmailJS Template ID <span style="font-weight:400">(Email Templates tab)</span></label>
-        <input id="nf-tplid" type="text" placeholder="template_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-      </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:.71rem;color:var(--muted);line-height:1.6">
-        <strong style="color:var(--text)">Template variables:</strong>&nbsp;
-        <code style="color:var(--accent)">{{to_email}}</code> &nbsp;
-        <code style="color:var(--accent)">{{subject}}</code> &nbsp;
-        <code style="color:var(--accent)">{{{body}}}</code> (triple braces for HTML)
-      </div>
-      <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
-        <button onclick="saveNotifSettings()" style="background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
-        <button onclick="testNotifEmail()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 16px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test</button>
-        <button onclick="clearNotifSettings()" style="background:none;border:none;color:var(--red);font-size:.74rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
-      </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <label style="font-size:.74rem;color:var(--muted);font-weight:600">Bot Token <span style="font-weight:400">(hidden for security)</span>
+        <button onclick="nfToggleToken()" id="nf-token-eye" style="background:none;border:none;cursor:pointer;font-size:.8rem;color:var(--accent);margin-left:6px;font-family:inherit;padding:0">Show</button>
+      </label>
+      <input id="nf-tg-token" type="password" placeholder="123456789:AAF..." style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+      <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">Chat IDs <span style="font-weight:400">(comma-separated for multiple recipients)</span></label>
+      <input id="nf-tg-chatid" type="text" placeholder="123456789, 987654321" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
     </div>
-
-    <!-- Telegram Tab -->
-    <div id="nf-pane-wa" style="display:none">
-      <p style="font-size:.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Sends a Telegram message <strong>1 day before</strong> and <strong>on expiry day</strong>. Free, instant, no limits — uses the official Telegram Bot API.</p>
-      <div style="background:#ebf5fb;border:1px solid #90caf9;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:.72rem;color:#0d47a1;line-height:1.8">
-        <strong>One-time Telegram setup (2 minutes):</strong><br>
-        1. Open Telegram → search <strong>@BotFather</strong> → send <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">/newbot</code><br>
-        2. Follow prompts to name your bot → copy the <strong>Bot Token</strong> it gives you<br>
-        3. Search for your new bot in Telegram and send it any message (e.g. <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">hi</code>)<br>
-        4. Open this URL in your browser to get your Chat ID:<br>
-        &nbsp;&nbsp;<code style="background:#dbeafe;padding:1px 5px;border-radius:3px;word-break:break-all">https://api.telegram.org/bot<strong>YOUR_TOKEN</strong>/getUpdates</code><br>
-        &nbsp;&nbsp;Look for <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">"id"</code> inside <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">"chat"</code> — that number is your Chat ID<br>
-        5. Enter the token and chat ID below
-      </div>
-      <div style="display:flex;flex-direction:column;gap:9px">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600">Bot Token <span style="font-weight:400">(from @BotFather)</span></label>
-        <input id="nf-tg-token" type="text" placeholder="123456789:AAF..." style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">Chat ID <span style="font-weight:400">(from getUpdates, e.g. 987654321)</span></label>
-        <input id="nf-tg-chatid" type="text" placeholder="987654321" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-      </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:.71rem;color:var(--muted);line-height:1.5">
-        &#9432; Messages are sent via the official Telegram Bot API. Free, no rate limits for personal use. Your bot token is stored only in your browser's localStorage.
-      </div>
-      <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
-        <button onclick="saveWaSettings()" style="background:#2196f3;color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
-        <button onclick="testWaMsg()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 16px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test</button>
-        <button onclick="clearWaSettings()" style="background:none;border:none;color:var(--red);font-size:.74rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
-      </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:.71rem;color:var(--muted);line-height:1.5">
+      &#9432; Bot token is stored only in your browser's localStorage and never sent anywhere except the Telegram API.
     </div>
-
+    <div style="display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap">
+      <button onclick="saveWaSettings()" style="background:#2196f3;color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
+      <button onclick="testWaMsg()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test Daily</button>
+      <button onclick="testWeeklyMsg()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test Weekly</button>
+      <button onclick="clearWaSettings()" style="background:none;border:none;color:var(--red);font-size:.74rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
+    </div>
     <div id="nf-status" style="margin-top:10px;font-size:.75rem;min-height:18px"></div>
   </div>
 </div>
@@ -386,53 +349,20 @@ var NF_SENT_KEY='fot_notif_sent';
 
 function nfSettings(){try{return JSON.parse(localStorage.getItem(NF_KEY)||'null');}catch(e){return null;}}
 
-function nfTab(tab){
-  var isEmail=tab==='email';
-  document.getElementById('nf-pane-email').style.display=isEmail?'block':'none';
-  document.getElementById('nf-pane-wa').style.display=isEmail?'none':'block';
-  document.getElementById('nf-tab-email').style.cssText='background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:'+(isEmail?'var(--accent)':'var(--muted)')+';border-bottom:2px solid '+(isEmail?'var(--accent)':'transparent')+';margin-bottom:-2px';
-  document.getElementById('nf-tab-wa').style.cssText='background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:'+(!isEmail?'#2196f3':'var(--muted)')+';border-bottom:2px solid '+(!isEmail?'#2196f3':'transparent')+';margin-bottom:-2px';
-  document.getElementById('nf-status').textContent='';
-}
-
 function openNotifModal(){
   var s=nfSettings()||{};
-  document.getElementById('nf-email').value=s.email||'';
-  document.getElementById('nf-pubkey').value=s.pubkey||'';
-  document.getElementById('nf-svcid').value=s.svcid||'';
-  document.getElementById('nf-tplid').value=s.tplid||'';
   document.getElementById('nf-tg-token').value=s.tgtoken||'';
   document.getElementById('nf-tg-chatid').value=s.tgchatid||'';
   document.getElementById('nf-status').textContent='';
-  nfTab('email');
-  var m=document.getElementById('notif-modal');
-  m.style.display='flex';
+  document.getElementById('notif-modal').style.display='flex';
 }
 function closeNotifModal(){document.getElementById('notif-modal').style.display='none';}
-
-function saveNotifSettings(){
-  var s=nfSettings()||{};
-  s.email=document.getElementById('nf-email').value.trim();
-  s.pubkey=document.getElementById('nf-pubkey').value.trim();
-  s.svcid=document.getElementById('nf-svcid').value.trim();
-  s.tplid=document.getElementById('nf-tplid').value.trim();
-  if(!s.email||!s.pubkey||!s.svcid||!s.tplid){
-    nfStatus('Please fill in all fields.','var(--red)');return;
-  }
-  localStorage.setItem(NF_KEY,JSON.stringify(s));
-  nfStatus('✓ Email settings saved.','var(--green)');
-}
-
-function clearNotifSettings(){
-  var s=nfSettings()||{};
-  delete s.email;delete s.pubkey;delete s.svcid;delete s.tplid;
-  localStorage.setItem(NF_KEY,JSON.stringify(s));
-  localStorage.removeItem(NF_SENT_KEY);
-  document.getElementById('nf-email').value='';
-  document.getElementById('nf-pubkey').value='';
-  document.getElementById('nf-svcid').value='';
-  document.getElementById('nf-tplid').value='';
-  nfStatus('Email notifications disabled.','var(--muted)');
+function nfToggleToken(){
+  var inp=document.getElementById('nf-tg-token');
+  var btn=document.getElementById('nf-token-eye');
+  var show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.textContent=show?'Hide':'Show';
 }
 
 function saveWaSettings(){
@@ -465,85 +395,6 @@ function nfDateStr(offsetDays){
   return d.toISOString().slice(0,10);
 }
 
-function nfBuildTable(rows,label){
-  var html='<h3 style="font-family:sans-serif;font-size:15px;margin:16px 0 8px;color:#1e293b">'+label+'</h3>';
-  html+='<table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:13px">';
-  html+='<thead><tr style="background:#1d4ed8;color:#fff">';
-  html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Name</th>';
-  html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Segment</th>';
-  html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Expiry</th>';
-  html+='<th style="padding:8px 12px;text-align:right;border:1px solid #93c5fd">Lot Size</th>';
-  html+='<th style="padding:8px 12px;text-align:right;border:1px solid #93c5fd">Margin (Est.)</th>';
-  html+='</tr></thead><tbody>';
-  rows.forEach(function(r,i){
-    var bg=i%2===0?'#f8fafc':'#eff6ff';
-    html+='<tr style="background:'+bg+'">';
-    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;font-weight:600">'+r.name+'</td>';
-    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;color:#6d28d9">'+r.exch+'</td>';
-    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1">'+r.expiry+'</td>';
-    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;text-align:right">'+r.lot.toLocaleString('en-IN')+'</td>';
-    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;text-align:right;color:#b45309;font-weight:600">'+nfMargin(r)+'</td>';
-    html+='</tr>';
-  });
-  html+='</tbody></table>';
-  return html;
-}
-
-function nfBuildBody(todayRows,tomorrowRows,todayStr,tomorrowStr){
-  var html='<div style="font-family:sans-serif;font-size:14px;color:#0f172a;max-width:680px;margin:0 auto">';
-  html+='<div style="background:linear-gradient(135deg,#1d4ed8,#7c3aed);padding:20px 24px;border-radius:10px 10px 0 0">';
-  html+='<h2 style="color:#fff;margin:0;font-size:18px">&#128276; F&amp;O Expiry Alert</h2>';
-  html+='<p style="color:#bfdbfe;margin:4px 0 0;font-size:12px">Futures &amp; Options Expiry Tracker</p></div>';
-  html+='<div style="border:1px solid #e2e8f0;border-top:none;padding:20px 24px;border-radius:0 0 10px 10px">';
-  if(todayRows.length)html+=nfBuildTable(todayRows,'📅 Expiring Today — '+todayStr);
-  if(tomorrowRows.length)html+=nfBuildTable(tomorrowRows,'⏰ Expiring Tomorrow — '+tomorrowStr);
-  html+='<p style="font-size:11px;color:#94a3b8;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:12px">This is an automated alert from your F&amp;O Expiry Tracker. Manage notification settings in the app.</p>';
-  html+='</div></div>';
-  return html;
-}
-
-async function nfSendEmail(subject,bodyHtml,isTest){
-  var s=nfSettings();
-  if(!s||!s.pubkey||!s.svcid||!s.tplid||!s.email)return false;
-  try{
-    /* Load EmailJS SDK lazily */
-    if(!window.emailjs){
-      await new Promise(function(res,rej){
-        var sc=document.createElement('script');
-        sc.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-        sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);
-      });
-      emailjs.init({publicKey:s.pubkey});
-    }
-    var params={to_email:s.email,subject:subject,body:bodyHtml};
-    await emailjs.send(s.svcid,s.tplid,params);
-    if(!isTest){
-      var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
-      sent[nfDateStr(0)]=true;
-      localStorage.setItem(NF_SENT_KEY,JSON.stringify(sent));
-    }
-    return true;
-  }catch(e){console.error('EmailJS error',e);return false;}
-}
-
-async function testNotifEmail(){
-  var s=nfSettings();
-  if(!s||!s.email){nfStatus('Save your settings first.','var(--red)');return;}
-  nfStatus('Sending test email…','var(--muted)');
-  /* build sample rows from all data */
-  var sample=[IDX_DATA[0],MCX_DATA[0],EQ_DATA[0]].filter(Boolean).map(function(r){return{name:r.name,exch:r.exch,expiry:r.expiry,lot:r.lot};});
-  var body=nfBuildBody(sample,[],nfDateStr(0),'');
-  var ok=await nfSendEmail('Test – F&O Expiry Tracker Notification',body,true);
-  nfStatus(ok?'✓ Test email sent! Check your inbox.':'✗ Failed. Check your EmailJS credentials and template.', ok?'var(--green)':'var(--red)');
-}
-
-function nfAlreadySentToday(){
-  try{
-    var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
-    return !!sent[nfDateStr(0)];
-  }catch(e){return false;}
-}
-
 function nfMargin(r){
   var price=pCache[r.und]!=null?pCache[r.und]:(r.exch==='MCX'&&r.type==='OPT'&&futLp[r.und]?futLp[r.und]:r.lp);
   if(!price||price<=0||!r.lot)return'—';
@@ -564,25 +415,30 @@ function nfBuildTgMsg(rows,dateStr){
   return '```\n'+lines.join('\n')+'\n```';
 }
 
-async function nfSendTelegram(msg,isTest){
+async function nfSendTelegram(msg,isTest,sentKey){
   var s=nfSettings();
   if(!s||!s.tgtoken||!s.tgchatid)return false;
-  try{
-    var url='https://api.telegram.org/bot'+s.tgtoken+'/sendMessage';
-    var r=await fetch(url,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:s.tgchatid,text:msg,parse_mode:'Markdown'})
-    });
-    var j=await r.json();
-    if(!j.ok)throw new Error(j.description||'Telegram API error');
-    if(!isTest){
-      var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
-      sent['tg_'+nfDateStr(0)]=true;
-      localStorage.setItem(NF_SENT_KEY,JSON.stringify(sent));
-    }
-    return true;
-  }catch(e){console.error('Telegram error',e);return false;}
+  var ids=s.tgchatid.split(',').map(function(x){return x.trim();}).filter(Boolean);
+  var url='https://api.telegram.org/bot'+s.tgtoken+'/sendMessage';
+  var allOk=true;
+  for(var i=0;i<ids.length;i++){
+    try{
+      var r=await fetch(url,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id:ids[i],text:msg,parse_mode:'Markdown'})
+      });
+      var j=await r.json();
+      if(!j.ok)throw new Error(j.description||'Telegram API error');
+    }catch(e){console.error('Telegram error for '+ids[i],e);allOk=false;}
+  }
+  if(allOk&&!isTest){
+    var key=sentKey||('tg_'+nfDateStr(0));
+    var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
+    sent[key]=true;
+    localStorage.setItem(NF_SENT_KEY,JSON.stringify(sent));
+  }
+  return allOk;
 }
 
 function nfTgAlreadySentToday(){
@@ -592,33 +448,96 @@ function nfTgAlreadySentToday(){
   }catch(e){return false;}
 }
 
+function nfWeeklyAlreadySent(){
+  try{
+    /* Key = week start Monday date string */
+    var d=new Date();
+    var day=d.getDay();
+    var diff=d.getDate()-(day===0?6:day-1);
+    var mon=new Date(d.setDate(diff));
+    var key='tg_week_'+mon.toISOString().slice(0,10);
+    var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
+    return !!sent[key];
+  }catch(e){return false;}
+}
+
+function nfWeekSentKey(){
+  var d=new Date();
+  var day=d.getDay();
+  var diff=d.getDate()-(day===0?6:day-1);
+  var mon=new Date(d.setDate(diff));
+  return 'tg_week_'+mon.toISOString().slice(0,10);
+}
+
+function nfBuildWeeklyTgMsg(rows){
+  if(!rows.length)return null;
+  var pad=function(s,n,right){s=String(s);while(s.length<n)s=right?s+' ':' '+s;return s.slice(0,n);};
+  /* Group by expiry date */
+  var byDate={};
+  rows.forEach(function(r){
+    if(!byDate[r.expiry])byDate[r.expiry]=[];
+    byDate[r.expiry].push(r);
+  });
+  var dates=Object.keys(byDate).sort();
+  var lines=['📅 Weekly F&O Expiry Schedule','Week of '+nfDateStr(0)+'\n'];
+  dates.forEach(function(dt){
+    lines.push('── '+dt+' ──');
+    lines.push(pad('Name',18)+' '+pad('Seg',4)+' '+pad('Lot',7,true)+' '+pad('Margin',12,true));
+    byDate[dt].forEach(function(r){
+      lines.push(pad(r.name,18)+' '+pad(r.exch,4)+' '+pad(r.lot.toLocaleString('en-IN'),7,true)+' '+pad(nfMargin(r),12,true));
+    });
+    lines.push('');
+  });
+  lines.push('F&O Expiry Tracker');
+  return '```\n'+lines.join('\n')+'\n```';
+}
+
 async function testWaMsg(){
   var s=nfSettings();
   if(!s||!s.tgtoken||!s.tgchatid){nfStatus('Save Telegram settings first.','var(--red)');return;}
-  nfStatus('Sending test Telegram message…','var(--muted)');
+  nfStatus('Sending test daily message…','var(--muted)');
   var sample=(IDX_DATA.slice(0,2).concat(MCX_DATA.slice(0,2))).filter(Boolean);
   var msg=nfBuildTgMsg(sample,nfDateStr(1));
   var ok=await nfSendTelegram(msg,true);
-  nfStatus(ok?'✓ Test message sent! Check Telegram.':'✗ Failed. Check your Bot Token and Chat ID.',ok?'#2196f3':'var(--red)');
+  nfStatus(ok?'✓ Daily test sent! Check Telegram.':'✗ Failed. Check your Bot Token and Chat ID.',ok?'#2196f3':'var(--red)');
+}
+
+async function testWeeklyMsg(){
+  var s=nfSettings();
+  if(!s||!s.tgtoken||!s.tgchatid){nfStatus('Save Telegram settings first.','var(--red)');return;}
+  nfStatus('Sending test weekly message…','var(--muted)');
+  var sample=(IDX_DATA.slice(0,3).concat(MCX_DATA.slice(0,3))).filter(Boolean);
+  var msg=nfBuildWeeklyTgMsg(sample);
+  if(!msg){nfStatus('No sample data available.','var(--muted)');return;}
+  var ok=await nfSendTelegram(msg,true);
+  nfStatus(ok?'✓ Weekly test sent! Check Telegram.':'✗ Failed. Check your Bot Token and Chat ID.',ok?'#2196f3':'var(--red)');
 }
 
 async function nfCheckAndSend(){
   var s=nfSettings();
   if(!s)return;
   var today=nfDateStr(0),tomorrow=nfDateStr(1);
-  /* Only Index (NFO) + MCX, only expiring tomorrow */
-  var alertRows=IDX_DATA.concat(MCX_DATA).filter(function(r){return r.expiry===tomorrow;});
-  if(!alertRows.length)return;
-  /* Email */
-  if(s.email&&s.pubkey&&!nfAlreadySentToday()){
-    var subject='F&O Expiry Alert – '+alertRows.length+' expiring tomorrow ('+tomorrow+')';
-    var body=nfBuildBody([],alertRows,today,tomorrow);
-    await nfSendEmail(subject,body,false);
+  var allIdxMcx=IDX_DATA.concat(MCX_DATA);
+
+  /* ── Weekly alert on Monday ── */
+  if(new Date().getDay()===1&&s.tgtoken&&s.tgchatid&&!nfWeeklyAlreadySent()){
+    /* Collect all expiries within next 7 days */
+    var weekRows=allIdxMcx.filter(function(r){
+      if(!r.expiry)return false;
+      var diff=(new Date(r.expiry)-new Date(today))/(86400000);
+      return diff>=0&&diff<=7;
+    });
+    var weekMsg=nfBuildWeeklyTgMsg(weekRows);
+    if(weekMsg)await nfSendTelegram(weekMsg,false,nfWeekSentKey());
   }
-  /* Telegram */
+
+  /* ── Daily alert: instruments expiring tomorrow ── */
+  var alertRows=allIdxMcx.filter(function(r){return r.expiry===tomorrow;});
+  if(!alertRows.length)return;
+  /* Telegram daily */
   if(s.tgtoken&&s.tgchatid&&!nfTgAlreadySentToday()){
     var tgMsg=nfBuildTgMsg(alertRows,tomorrow);
-    await nfSendTelegram(tgMsg,false);
+    await nfSendTelegram(tgMsg,false,'tg_'+today);
   }
 }
 
