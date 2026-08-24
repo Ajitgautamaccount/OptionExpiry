@@ -182,9 +182,32 @@ function rEq(){
 function bPg(total,pg,PG){var pages=Math.ceil(total/PG),el=document.getElementById('eq-pg');if(pages<=1){el.innerHTML='';return;}var h='',s=Math.max(1,pg-3),e=Math.min(pages,pg+3);if(pg>1)h+='<button class="pb" onclick="gP(1)">&laquo;</button><button class="pb" onclick="gP('+(pg-1)+')">&lsaquo;</button>';for(var p=s;p<=e;p++)h+='<button class="pb'+(p===pg?' cur':'')+'" onclick="gP('+p+')">'+p+'</button>';if(pg<pages)h+='<button class="pb" onclick="gP('+(pg+1)+')">&rsaquo;</button><button class="pb" onclick="gP('+pages+')">&raquo;</button>';h+='<span class="pgi">'+Math.min((pg-1)*PG+1,total)+'-'+Math.min(pg*PG,total)+' of '+total+'</span>';el.innerHTML=h;}
 function gP(p){S.eq.pg=p;rEq();}
 function render(){rL('idx');rL('mcx');rEq();}
-var proxies=[function(u){return'https://api.allorigins.win/raw?url='+encodeURIComponent(u);},function(u){return'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u);},function(u){return'https://corsproxy.io/?url='+encodeURIComponent(u);},function(u){return'https://thingproxy.freeboard.io/fetch/'+u;}];
-async function fetchNSE(url){for(var i=0;i<proxies.length;i++){try{var r=await fetch(proxies[i](url),{signal:AbortSignal.timeout(7000)});if(!r.ok)continue;var t=await r.text();if(!t||t.trim()[0]!=='{')continue;return JSON.parse(t);}catch(e){continue;}}return null;}
-async function fetchOne(und,btn){if(btn){btn.textContent='…';btn.disabled=true;}var val=null;var d=await fetchNSE('https://www.nseindia.com/api/quote-derivative?symbol='+encodeURIComponent(und));if(d&&d.underlyingValue)val=parseFloat(d.underlyingValue);if(!val||isNaN(val)){var e=await fetchNSE('https://www.nseindia.com/api/quote-equity?symbol='+encodeURIComponent(und));if(e&&e.priceInfo&&e.priceInfo.lastPrice)val=parseFloat(e.priceInfo.lastPrice);}if(val&&!isNaN(val))pCache[und]=val;if(btn){btn.textContent='↺';btn.disabled=false;}render();}
-async function refreshAll(){var seen={};S.idx.filt.concat(S.mcx.filt).concat(S.eq.filt).forEach(function(r){seen[r.und]=true;});var unds=Object.keys(seen);for(var i=0;i<unds.length;i++)await fetchOne(unds[i],null);}
-function toggleAR(){arOn=!arOn;var b=document.getElementById('arBtn');if(arOn){b.classList.add('on');arT=setInterval(refreshAll,30000);document.getElementById('arInfo').textContent='ON (30s)';}else{b.classList.remove('on');clearInterval(arT);document.getElementById('arInfo').textContent='';}}
+var YT={
+  "NIFTY":"^NSEI","BANKNIFTY":"^NSEBANK","FINNIFTY":"^CNXFIN",
+  "BAJAJ-AUTO":"BAJAJ-AUTO.NS","M&M":"MM.NS","NAM-INDIA":"NIPPONA.NS",
+  "ALUMINI":"ALI=F","ALUMINIUM":"ALI=F","COPPER":"HG=F",
+  "GOLDGUINEA":"GC=F","GOLDPETAL":"GC=F","GOLDTEN":"GC=F",
+  "NATGASMINI":"NG=F","NATURALGAS":"NG=F",
+  "SILVER100":"SI=F","SILVERM":"SI=F","SILVERMIC":"SI=F",
+  "ZINC":"ZNC=F","ZINCMINI":"ZNC=F"
+};
+function yTicker(und){return YT[und]||(und+'.NS');}
+async function fetchOne(und,btn){
+  if(btn){btn.textContent='…';btn.disabled=true;}
+  var ticker=yTicker(und);
+  var val=null;
+  try{
+    var r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(ticker)+'?interval=1d&range=1d',{signal:AbortSignal.timeout(8000)});
+    if(r.ok){var j=await r.json();var p=j&&j.chart&&j.chart.result&&j.chart.result[0]&&j.chart.result[0].meta&&j.chart.result[0].meta.regularMarketPrice;if(p)val=parseFloat(p);}
+  }catch(e){}
+  if(val&&!isNaN(val))pCache[und]=val;
+  if(btn){btn.textContent='↺';btn.disabled=false;}
+  render();
+}
+async function refreshAll(){
+  var seen={};S.idx.filt.concat(S.mcx.filt).concat(S.eq.filt).forEach(function(r){seen[r.und]=true;});
+  var unds=Object.keys(seen);
+  for(var i=0;i<unds.length;i++){await fetchOne(unds[i],null);await new Promise(function(res){setTimeout(res,600);});}
+}
+function toggleAR(){arOn=!arOn;var b=document.getElementById('arBtn');if(arOn){b.classList.add('on');arT=setInterval(refreshAll,60000);document.getElementById('arInfo').textContent='ON (60s)';}else{b.classList.remove('on');clearInterval(arT);document.getElementById('arInfo').textContent='';}}
 window.onload=init;</script></body></html>
