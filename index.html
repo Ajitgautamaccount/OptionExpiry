@@ -136,9 +136,7 @@ body.light .cm{color:#92400e}
       3. Each recipient must message the bot first before they can receive alerts
     </div>
     <div style="display:flex;flex-direction:column;gap:9px">
-      <label style="font-size:.74rem;color:var(--muted);font-weight:600">Bot Token <span style="font-weight:400">(hidden for security)</span>
-        <button onclick="nfToggleToken()" id="nf-token-eye" style="background:none;border:none;cursor:pointer;font-size:.8rem;color:var(--accent);margin-left:6px;font-family:inherit;padding:0">Show</button>
-      </label>
+      <label style="font-size:.74rem;color:var(--muted);font-weight:600">Bot Token <span style="font-weight:400">(hidden for security)</span></label>
       <input id="nf-tg-token" type="password" placeholder="123456789:AAF..." style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
       <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">Chat IDs <span style="font-weight:400">(comma-separated for multiple recipients)</span></label>
       <input id="nf-tg-chatid" type="text" placeholder="123456789, 987654321" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
@@ -357,13 +355,6 @@ function openNotifModal(){
   document.getElementById('notif-modal').style.display='flex';
 }
 function closeNotifModal(){document.getElementById('notif-modal').style.display='none';}
-function nfToggleToken(){
-  var inp=document.getElementById('nf-tg-token');
-  var btn=document.getElementById('nf-token-eye');
-  var show=inp.type==='password';
-  inp.type=show?'text':'password';
-  btn.textContent=show?'Hide':'Show';
-}
 
 function saveWaSettings(){
   var s=nfSettings()||{};
