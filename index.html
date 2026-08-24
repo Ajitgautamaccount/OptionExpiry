@@ -20,9 +20,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .tbtn.gr{color:var(--green);border-color:rgba(16,185,129,.3)}
 .tbtn.gr:hover{background:rgba(16,185,129,.08)}
 .ar-info{font-size:.68rem;color:var(--muted)}
-.body-wrap{display:flex;flex:1;overflow:hidden;min-height:0}
-.left{width:560px;min-width:340px;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;flex-shrink:0}
-.right{flex:1;overflow-y:auto;min-width:0}
+.body-wrap{display:flex;flex:1;overflow:hidden;min-height:0;padding:12px 16px;gap:12px}
+.panel{flex:1;min-width:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.panel-eq{overflow:auto}
 .phdr{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;background:var(--surface);flex-shrink:0}
 .pico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .phdr h3{font-size:.76rem;font-weight:700;flex:1}
@@ -63,12 +63,13 @@ table.et td{padding:7px 14px;white-space:nowrap}
 .pgi{font-size:.68rem;color:var(--muted);margin-left:6px}
 .empty{text-align:center;color:var(--muted);padding:24px;font-size:.75rem}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-@media(max-width:780px){
+.expf-grp{display:flex;gap:4px;align-items:center;margin-left:8px}
+.expf-lbl{font-size:.68rem;color:var(--muted);white-space:nowrap}
+@media(max-width:900px){
   .hdr-pills{display:none}
-  .body-wrap{flex-direction:column;overflow:visible}
-  .left{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--border);overflow:visible}
+  .body-wrap{flex-direction:column;overflow:visible;padding:8px}
+  .panel{min-height:280px}
   .lscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:visible}
-  .right{overflow-x:auto;-webkit-overflow-scrolling:touch}
   table.mt,table.et{min-width:420px}
   .eq-sticky-hdr{position:static}.pg{position:static}
 }</style></head><body><link rel="preconnect" href="https://fonts.googleapis.com">
@@ -90,12 +91,19 @@ table.et td{padding:7px 14px;white-space:nowrap}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input id="srch" type="search" placeholder="Search symbol / name…" oninput="applyFilter()">
   </div>
+  <div class="expf-grp">
+    <span class="expf-lbl">Expiry:</span>
+    <button class="tbtn on" id="ef-today" onclick="setExpF('today')">Today</button>
+    <button class="tbtn" id="ef-week" onclick="setExpF('week')">This Week</button>
+    <button class="tbtn" id="ef-month" onclick="setExpF('month')">This Month</button>
+  </div>
   <button class="tbtn gr" onclick="refreshAll()">&#8635; Refresh Prices</button>
   <button class="tbtn" id="arBtn" onclick="toggleAR()">&#9711; Auto-refresh</button>
   <span class="ar-info" id="arInfo"></span>
 </div>
 <div class="body-wrap">
-  <div class="left">
+  <!-- Index Futures Panel -->
+  <div class="panel">
     <div class="phdr gi"><div class="pico">&#9733;</div><h3>Index Futures</h3><span class="pcnt" id="cnt-idx">—</span></div>
     <div class="lscroll">
       <table class="mt"><thead><tr>
@@ -106,9 +114,11 @@ table.et td{padding:7px 14px;white-space:nowrap}
         <th style="text-align:right">LTP</th>
       </tr></thead><tbody id="idx-tb"></tbody></table>
     </div>
-    <div class="divln"></div>
+  </div>
+  <!-- MCX Futures Panel -->
+  <div class="panel">
     <div class="phdr gm"><div class="pico">&#9874;</div><h3>MCX Futures</h3><span class="pcnt" id="cnt-mcx">—</span></div>
-    <div class="lscroll" style="flex:2">
+    <div class="lscroll">
       <table class="mt"><thead><tr>
         <th onclick="sortL('mcx','sym')">Symbol</th>
         <th onclick="sortL('mcx','name')">Name</th>
@@ -118,11 +128,12 @@ table.et td{padding:7px 14px;white-space:nowrap}
       </tr></thead><tbody id="mcx-tb"></tbody></table>
     </div>
   </div>
-  <div class="right">
+  <!-- Equity Futures Panel -->
+  <div class="panel panel-eq">
     <div class="eq-sticky-hdr">
-      <div class="phdr ge"><div class="pico">&#128200;</div><h3>Equity Futures</h3><span class="pcnt" id="cnt-eq">—</span></div>
-      <table class="et" style="table-layout:fixed">
-        <colgroup><col style="width:150px"><col style="width:140px"><col style="width:100px"><col style="width:80px"><col style="width:120px"></colgroup>
+      <div class="phdr ge"><div class="pico">&#128200;</div><h3>Equity Futures &amp; Options</h3><span class="pcnt" id="cnt-eq">—</span></div>
+      <table class="et" style="table-layout:fixed;width:100%">
+        <colgroup><col style="width:140px"><col style="width:120px"><col style="width:90px"><col style="width:70px"><col style="width:110px"></colgroup>
         <thead><tr>
           <th onclick="sortR('sym')">Symbol</th>
           <th onclick="sortR('name')">Name</th>
@@ -132,8 +143,8 @@ table.et td{padding:7px 14px;white-space:nowrap}
         </tr></thead>
       </table>
     </div>
-    <table class="et" style="table-layout:fixed">
-      <colgroup><col style="width:150px"><col style="width:140px"><col style="width:100px"><col style="width:80px"><col style="width:120px"></colgroup>
+    <table class="et" style="table-layout:fixed;width:100%">
+      <colgroup><col style="width:140px"><col style="width:120px"><col style="width:90px"><col style="width:70px"><col style="width:110px"></colgroup>
       <tbody id="eq-tb"></tbody>
     </table>
     <div class="pg" id="eq-pg"></div>
@@ -145,18 +156,33 @@ var MCX_DATA=[{"sym":"ALUMINI26AUGFUT","name":"ALUMINI","expiry":"2026-08-31","l
 var WKLY={"360ONE":["2026-08-25","2026-09-29"],"ABB":["2026-08-25","2026-09-29"],"ABCAPITAL":["2026-08-25","2026-09-29"],"ADANIENSOL":["2026-08-25","2026-09-29"],"ADANIENT":["2026-08-25","2026-09-29"],"ADANIGREEN":["2026-08-25","2026-09-29"],"ADANIPORTS":["2026-08-25","2026-09-29"],"ADANIPOWER":["2026-08-25","2026-09-29"],"ALKEM":["2026-08-25","2026-09-29"],"AMBER":["2026-08-25","2026-09-29"],"AMBUJACEM":["2026-08-25","2026-09-29"],"ANGELONE":["2026-08-25","2026-09-29"],"APLAPOLLO":["2026-08-25","2026-09-29"],"APOLLOHOSP":["2026-08-25","2026-09-29"],"ASHOKLEY":["2026-08-25","2026-09-29"],"ASIANPAINT":["2026-08-25","2026-09-29"],"ASTRAL":["2026-08-25","2026-09-29"],"AUBANK":["2026-08-25","2026-09-29"],"AUROPHARMA":["2026-08-25","2026-09-29"],"AXISBANK":["2026-08-25","2026-09-29"],"BAJAJ-AUTO":["2026-08-25","2026-09-29"],"BAJAJFINSV":["2026-08-25","2026-09-29"],"BAJAJHLDNG":["2026-08-25","2026-09-29"],"BAJFINANCE":["2026-08-25","2026-09-29"],"BANDHANBNK":["2026-08-25","2026-09-29"],"BANKBARODA":["2026-08-25","2026-09-29"],"BANKINDIA":["2026-08-25","2026-09-29"],"BANKNIFTY":["2026-08-25","2026-09-29"],"BDL":["2026-08-25","2026-09-29"],"BEL":["2026-08-25","2026-09-29"],"BHARATFORG":["2026-08-25","2026-09-29"],"BHARTIARTL":["2026-08-25","2026-09-29"],"BHEL":["2026-08-25","2026-09-29"],"BIOCON":["2026-08-25","2026-09-29"],"BLUESTARCO":["2026-08-25","2026-09-29"],"BOSCHLTD":["2026-08-25","2026-09-29"],"BPCL":["2026-08-25","2026-09-29"],"BRITANNIA":["2026-08-25","2026-09-29"],"BSE":["2026-08-25","2026-09-29"],"CAMS":["2026-08-25","2026-09-29"],"CANBK":["2026-08-25","2026-09-29"],"CDSL":["2026-08-25","2026-09-29"],"CGPOWER":["2026-08-25","2026-09-29"],"CHOLAFIN":["2026-08-25","2026-09-29"],"CIPLA":["2026-08-25","2026-09-29"],"COALINDIA":["2026-08-25","2026-09-29"],"COCHINSHIP":["2026-08-25","2026-09-29"],"COFORGE":["2026-08-25","2026-09-29"],"COLPAL":["2026-08-25","2026-09-29"],"CONCOR":["2026-08-25","2026-09-29"],"CROMPTON":["2026-08-25","2026-09-29"],"CUMMINSIND":["2026-08-25","2026-09-29"],"DABUR":["2026-08-25","2026-09-29"],"DALBHARAT":["2026-08-25"],"DELHIVERY":["2026-08-25","2026-09-29"],"DIVISLAB":["2026-08-25","2026-09-29"],"DIXON":["2026-08-25","2026-09-29"],"DLF":["2026-08-25","2026-09-29"],"DMART":["2026-08-25","2026-09-29"],"DRREDDY":["2026-08-25","2026-09-29"],"EICHERMOT":["2026-08-25","2026-09-29"],"ETERNAL":["2026-08-25","2026-09-29"],"FEDERALBNK":["2026-08-25","2026-09-29"],"FINNIFTY":["2026-08-25","2026-09-29"],"FORCEMOT":["2026-08-25","2026-09-29"],"FORTIS":["2026-08-25","2026-09-29"],"GAIL":["2026-08-25","2026-09-29"],"GLENMARK":["2026-08-25","2026-09-29"],"GMRAIRPORT":["2026-08-25","2026-09-29"],"GODFRYPHLP":["2026-08-25","2026-09-29"],"GODREJCP":["2026-08-25","2026-09-29"],"GODREJPROP":["2026-08-25","2026-09-29"],"GRASIM":["2026-08-25","2026-09-29"],"GVT&D":["2026-08-25","2026-09-29"],"HAL":["2026-08-25","2026-09-29"],"HAVELLS":["2026-08-25","2026-09-29"],"HCLTECH":["2026-08-25","2026-09-29"],"HDFCAMC":["2026-08-25","2026-09-29"],"HDFCBANK":["2026-08-25","2026-09-29"],"HDFCLIFE":["2026-08-25","2026-09-29"],"HEROMOTOCO":["2026-08-25","2026-09-29"],"HINDALCO":["2026-08-25","2026-09-29"],"HINDPETRO":["2026-08-25","2026-09-29"],"HINDUNILVR":["2026-08-25","2026-09-29"],"HINDZINC":["2026-08-25","2026-09-29"],"HYUNDAI":["2026-08-25","2026-09-29"],"ICICIBANK":["2026-08-25","2026-09-29"],"ICICIGI":["2026-08-25","2026-09-29"],"ICICIPRULI":["2026-08-25","2026-09-29"],"IDEA":["2026-08-25","2026-09-29"],"IDFCFIRSTB":["2026-08-25","2026-09-29"],"IEX":["2026-08-25","2026-09-29"],"INDHOTEL":["2026-08-25","2026-09-29"],"INDIANB":["2026-08-25","2026-09-29"],"INDIGO":["2026-08-25","2026-09-29"],"INDUSINDBK":["2026-08-25","2026-09-29"],"INDUSTOWER":["2026-08-25","2026-09-29"],"INFY":["2026-08-25","2026-09-29"],"INOXWIND":["2026-08-25","2026-09-29"],"IOC":["2026-08-25","2026-09-29"],"IREDA":["2026-08-25","2026-09-29"],"IRFC":["2026-08-25","2026-09-29"],"ITC":["2026-08-25","2026-09-29"],"JINDALSTEL":["2026-08-25","2026-09-29"],"JIOFIN":["2026-08-25","2026-09-29"],"JSWENERGY":["2026-08-25","2026-09-29"],"JSWSTEEL":["2026-08-25","2026-09-29"],"JUBLFOOD":["2026-08-25","2026-09-29"],"KALYANKJIL":["2026-08-25","2026-09-29"],"KAYNES":["2026-08-25","2026-09-29"],"KEI":["2026-08-25","2026-09-29"],"KFINTECH":["2026-08-25","2026-09-29"],"KOTAKBANK":["2026-08-25","2026-09-29"],"KPITTECH":["2026-08-25","2026-09-29"],"LAURUSLABS":["2026-08-25","2026-09-29"],"LICHSGFIN":["2026-08-25","2026-09-29"],"LICI":["2026-08-25","2026-09-29"],"LODHA":["2026-08-25","2026-09-29"],"LT":["2026-08-25","2026-09-29"],"LTF":["2026-08-25","2026-09-29"],"LTM":["2026-08-25","2026-09-29"],"LUPIN":["2026-08-25","2026-09-29"],"M&M":["2026-08-25","2026-09-29"],"MANAPPURAM":["2026-08-25","2026-09-29"],"MANKIND":["2026-08-25","2026-09-29"],"MARICO":["2026-08-25","2026-09-29"],"MARUTI":["2026-08-25","2026-09-29"],"MAXHEALTH":["2026-08-25","2026-09-29"],"MAZDOCK":["2026-08-25","2026-09-29"],"MCX":["2026-08-25","2026-09-29"],"MFSL":["2026-08-25","2026-09-29"],"MIDCPNIFTY":["2026-08-25","2026-09-29"],"MOTHERSON":["2026-08-25","2026-09-29"],"MOTILALOFS":["2026-08-25","2026-09-29"],"MPHASIS":["2026-08-25","2026-09-29"],"MUTHOOTFIN":["2026-08-25","2026-09-29"],"NAM-INDIA":["2026-08-25","2026-09-29"],"NATIONALUM":["2026-08-25","2026-09-29"],"NAUKRI":["2026-08-25","2026-09-29"],"NBCC":["2026-08-25","2026-09-29"],"NESTLEIND":["2026-08-25","2026-09-29"],"NHPC":["2026-08-25","2026-09-29"],"NIFTY":["2026-08-25","2026-09-01","2026-09-08","2026-09-15","2026-09-22","2026-09-29"],"NIFTYFPI":["2026-08-25","2026-09-29"],"NIFTYNXT50":["2026-08-25","2026-09-29"],"NMDC":["2026-08-25","2026-09-29"],"NTPC":["2026-08-25","2026-09-29"],"NYKAA":["2026-08-25","2026-09-29"],"OBEROIRLTY":["2026-08-25","2026-09-29"],"OFSS":["2026-08-25","2026-09-29"],"OIL":["2026-08-25","2026-09-29"],"ONGC":["2026-08-25","2026-09-29"],"PAGEIND":["2026-08-25","2026-09-29"],"PATANJALI":["2026-08-25","2026-09-29"],"PAYTM":["2026-08-25","2026-09-29"],"PERSISTENT":["2026-08-25","2026-09-29"],"PETRONET":["2026-08-25","2026-09-29"],"PFC":["2026-08-25","2026-09-29"],"PGEL":["2026-08-25","2026-09-29"],"PHOENIXLTD":["2026-08-25","2026-09-29"],"PIDILITIND":["2026-08-25","2026-09-29"],"PIIND":["2026-08-25","2026-09-29"],"PNB":["2026-08-25","2026-09-29"],"PNBHOUSING":["2026-08-25","2026-09-29"],"POLICYBZR":["2026-08-25","2026-09-29"],"POLYCAB":["2026-08-25","2026-09-29"],"POWERGRID":["2026-08-25","2026-09-29"],"POWERINDIA":["2026-08-25","2026-09-29"],"PREMIERENE":["2026-08-25","2026-09-29"],"PRESTIGE":["2026-08-25","2026-09-29"],"RADICO":["2026-08-25","2026-09-29"],"RBLBANK":["2026-08-25","2026-09-29"],"RECLTD":["2026-08-25","2026-09-29"],"RELIANCE":["2026-08-25","2026-09-29"],"RVNL":["2026-08-25","2026-09-29"],"SAIL":["2026-08-25","2026-09-29"],"SBICARD":["2026-08-25","2026-09-29"],"SBILIFE":["2026-08-25","2026-09-29"],"SBIN":["2026-08-25","2026-09-29"],"SHREECEM":["2026-08-25","2026-09-29"],"SHRIRAMFIN":["2026-08-25","2026-09-29"],"SIEMENS":["2026-08-25","2026-09-29"],"SOLARINDS":["2026-08-25","2026-09-29"],"SONACOMS":["2026-08-25","2026-09-29"],"SRF":["2026-08-25","2026-09-29"],"SUNPHARMA":["2026-08-25","2026-09-29"],"SUPREMEIND":["2026-08-25","2026-09-29"],"SUZLON":["2026-08-25","2026-09-29"],"SWIGGY":["2026-08-25","2026-09-29"],"TATACONSUM":["2026-08-25","2026-09-29"],"TATAELXSI":["2026-08-25","2026-09-29"],"TATAPOWER":["2026-08-25","2026-09-29"],"TATASTEEL":["2026-08-25","2026-09-29"],"TCS":["2026-08-25","2026-09-29"],"TECHM":["2026-08-25","2026-09-29"],"TIINDIA":["2026-08-25","2026-09-29"],"TITAN":["2026-08-25","2026-09-29"],"TMPV":["2026-08-25","2026-09-29"],"TORNTPHARM":["2026-08-25","2026-09-29"],"TRENT":["2026-08-25","2026-09-29"],"TVSMOTOR":["2026-08-25","2026-09-29"],"ULTRACEMCO":["2026-08-25","2026-09-29"],"UNIONBANK":["2026-08-25","2026-09-29"],"UNITDSPR":["2026-08-25","2026-09-29"],"UNOMINDA":["2026-08-25","2026-09-29"],"UPL":["2026-08-25","2026-09-29"],"VBL":["2026-08-25","2026-09-29"],"VEDL":["2026-08-25","2026-09-29"],"VMM":["2026-08-25","2026-09-29"],"VOLTAS":["2026-08-25","2026-09-29"],"WAAREEENER":["2026-08-25","2026-09-29"],"WIPRO":["2026-08-25","2026-09-29"],"YESBANK":["2026-08-25","2026-09-29"],"ZYDUSLIFE":["2026-08-25","2026-09-29"]};
 var EXPIRY_DATES=["2026-08-24","2026-08-25","2026-08-26","2026-08-28","2026-08-31"];
 var S={idx:{data:[],filt:[],sort:'expiry',dir:1},mcx:{data:[],filt:[],sort:'expiry',dir:1},eq:{data:[],filt:[],sort:'lot',dir:-1,pg:1,PG:50}};
-var pCache={};var arOn=false,arT=null;
+var pCache={};var arOn=false,arT=null;var expF='today';
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function weekEndStr(){var d=new Date();var dow=d.getDay();var diff=dow===0?0:7-dow;var e=new Date(d);e.setDate(d.getDate()+diff);return e.getFullYear()+'-'+String(e.getMonth()+1).padStart(2,'0')+'-'+String(e.getDate()).padStart(2,'0');}
+function monthStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function setExpF(mode){
+  expF=mode;
+  ['today','week','month'].forEach(function(m){var b=document.getElementById('ef-'+m);if(b){b.classList.toggle('on',m===mode);}});
+  applyFilter();
+}
 var MO=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function fD(s){if(!s)return'';var p=s.split('-');return p[2]+'-'+MO[+p[1]];}
 function fN(v){return v>0?v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
 function init(){
   [IDX_DATA,EQ_DATA,MCX_DATA].forEach(function(a){a.forEach(function(r){r.lot=parseInt(r.lot)||0;r.lp=parseFloat(r.lp)||0;});});
   S.idx.data=IDX_DATA.slice();S.mcx.data=MCX_DATA.slice();S.eq.data=EQ_DATA.slice();
-  applyFilter();
+  setExpF('today');
+}
+function expiryOk(expiry){
+  if(!expiry)return false;
+  if(expF==='today')return expiry===todayStr();
+  if(expF==='week')return expiry<=weekEndStr()&&expiry>=todayStr();
+  if(expF==='month')return expiry.slice(0,7)===monthStr();
+  return true;
 }
 function applyFilter(){
   var q=document.getElementById('srch').value.toLowerCase().trim();
-  ['idx','mcx','eq'].forEach(function(k){S[k].filt=S[k].data.filter(function(r){return !q||(r.sym.toLowerCase().indexOf(q)>=0||r.name.toLowerCase().indexOf(q)>=0||r.und.toLowerCase().indexOf(q)>=0);});doSort(k);});
+  ['idx','mcx','eq'].forEach(function(k){S[k].filt=S[k].data.filter(function(r){var qOk=!q||(r.sym.toLowerCase().indexOf(q)>=0||r.name.toLowerCase().indexOf(q)>=0||r.und.toLowerCase().indexOf(q)>=0);return qOk&&expiryOk(r.expiry);});doSort(k);});
   if(S.eq.pg>Math.ceil(S.eq.filt.length/S.eq.PG))S.eq.pg=1;
   render();
 }
