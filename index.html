@@ -117,8 +117,41 @@ body.light .cm{color:#92400e}
   </div>
   <button class="tbtn gr" onclick="refreshAll()">&#8635; Refresh Prices</button>
   <button class="tbtn" id="arBtn" onclick="toggleAR()">&#9711; Auto-refresh</button>
+  <button class="tbtn" onclick="openNotifModal()" title="Email notification settings">&#128276; Notify</button>
   <button class="tbtn" id="themeBtn" onclick="toggleTheme()" style="margin-left:auto">🌙 Dark</button>
   <span class="ar-info" id="arInfo"></span>
+</div>
+<!-- Notification Modal -->
+<div id="notif-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;width:min(480px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h3 style="font-size:.95rem;font-weight:700;color:var(--text)">&#128276; Expiry Email Notifications</h3>
+      <button onclick="closeNotifModal()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--muted);line-height:1">&#10005;</button>
+    </div>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Sends an email alert <strong>1 day before</strong> and <strong>on expiry day</strong> for all expiring instruments. Powered by <a href="https://www.emailjs.com" target="_blank" style="color:var(--accent)">EmailJS</a> (free, no backend needed). <a href="https://www.emailjs.com/docs/introduction/how-does-emailjs-work/" target="_blank" style="color:var(--accent)">Setup guide ↗</a></p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <label style="font-size:.75rem;color:var(--muted);font-weight:600">Recipient Email</label>
+      <input id="nf-email" type="email" placeholder="you@example.com" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%">
+      <label style="font-size:.75rem;color:var(--muted);font-weight:600;margin-top:4px">EmailJS Public Key <span style="font-weight:400">(from Account → API Keys)</span></label>
+      <input id="nf-pubkey" type="text" placeholder="xxxxxxxxxxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+      <label style="font-size:.75rem;color:var(--muted);font-weight:600;margin-top:4px">EmailJS Service ID <span style="font-weight:400">(Email Services tab)</span></label>
+      <input id="nf-svcid" type="text" placeholder="service_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+      <label style="font-size:.75rem;color:var(--muted);font-weight:600;margin-top:4px">EmailJS Template ID <span style="font-weight:400">(Email Templates tab)</span></label>
+      <input id="nf-tplid" type="text" placeholder="template_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:14px;font-size:.72rem;color:var(--muted);line-height:1.6">
+      <strong style="color:var(--text)">Template variables to use in EmailJS:</strong><br>
+      <code style="color:var(--accent)">{{to_email}}</code> — recipient &nbsp;
+      <code style="color:var(--accent)">{{subject}}</code> — email subject &nbsp;
+      <code style="color:var(--accent)">{{body}}</code> — full HTML table
+    </div>
+    <div style="display:flex;gap:8px;margin-top:18px;align-items:center">
+      <button onclick="saveNotifSettings()" style="background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
+      <button onclick="testNotifEmail()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test Email</button>
+      <button onclick="clearNotifSettings()" style="background:none;border:none;color:var(--red);font-size:.75rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
+    </div>
+    <div id="nf-status" style="margin-top:10px;font-size:.75rem;min-height:18px"></div>
+  </div>
 </div>
 <div class="body-wrap">
   <!-- Index Futures Panel -->
@@ -307,4 +340,154 @@ async function refreshAll(){
 function toggleAR(){arOn=!arOn;var b=document.getElementById('arBtn');if(arOn){b.classList.add('on');arT=setInterval(refreshAll,60000);document.getElementById('arInfo').textContent='ON (60s)';}else{b.classList.remove('on');clearInterval(arT);document.getElementById('arInfo').textContent='';}}
 /* Hourly margin refresh: fetch all prices every 60 minutes so margin estimates stay current */
 var mgnTimer=setInterval(function(){refreshAll();},3600000);
-window.onload=init;</script></body></html>
+
+/* ── Notification system ── */
+var NF_KEY='fot_notif_v1';
+var NF_SENT_KEY='fot_notif_sent';
+
+function nfSettings(){try{return JSON.parse(localStorage.getItem(NF_KEY)||'null');}catch(e){return null;}}
+
+function openNotifModal(){
+  var s=nfSettings()||{};
+  document.getElementById('nf-email').value=s.email||'';
+  document.getElementById('nf-pubkey').value=s.pubkey||'';
+  document.getElementById('nf-svcid').value=s.svcid||'';
+  document.getElementById('nf-tplid').value=s.tplid||'';
+  document.getElementById('nf-status').textContent='';
+  var m=document.getElementById('notif-modal');
+  m.style.display='flex';
+}
+function closeNotifModal(){document.getElementById('notif-modal').style.display='none';}
+
+function saveNotifSettings(){
+  var s={
+    email:document.getElementById('nf-email').value.trim(),
+    pubkey:document.getElementById('nf-pubkey').value.trim(),
+    svcid:document.getElementById('nf-svcid').value.trim(),
+    tplid:document.getElementById('nf-tplid').value.trim()
+  };
+  if(!s.email||!s.pubkey||!s.svcid||!s.tplid){
+    nfStatus('Please fill in all fields.','var(--red)');return;
+  }
+  localStorage.setItem(NF_KEY,JSON.stringify(s));
+  nfStatus('✓ Saved. Notifications enabled.','var(--green)');
+}
+
+function clearNotifSettings(){
+  localStorage.removeItem(NF_KEY);
+  localStorage.removeItem(NF_SENT_KEY);
+  document.getElementById('nf-email').value='';
+  document.getElementById('nf-pubkey').value='';
+  document.getElementById('nf-svcid').value='';
+  document.getElementById('nf-tplid').value='';
+  nfStatus('Notifications disabled and cleared.','var(--muted)');
+}
+
+function nfStatus(msg,color){
+  var el=document.getElementById('nf-status');
+  el.textContent=msg;el.style.color=color||'var(--text)';
+}
+
+function nfDateStr(offsetDays){
+  var d=new Date();d.setDate(d.getDate()+(offsetDays||0));
+  return d.toISOString().slice(0,10);
+}
+
+function nfBuildTable(rows,label){
+  var html='<h3 style="font-family:sans-serif;font-size:15px;margin:16px 0 8px;color:#1e293b">'+label+'</h3>';
+  html+='<table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:13px">';
+  html+='<thead><tr style="background:#1d4ed8;color:#fff">';
+  html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Name</th>';
+  html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Segment</th>';
+  html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Expiry</th>';
+  html+='<th style="padding:8px 12px;text-align:right;border:1px solid #93c5fd">Lot Size</th>';
+  html+='</tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    var bg=i%2===0?'#f8fafc':'#eff6ff';
+    html+='<tr style="background:'+bg+'">';
+    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;font-weight:600">'+r.name+'</td>';
+    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;color:#6d28d9">'+r.exch+'</td>';
+    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1">'+r.expiry+'</td>';
+    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;text-align:right">'+r.lot.toLocaleString('en-IN')+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  return html;
+}
+
+function nfBuildBody(todayRows,tomorrowRows,todayStr,tomorrowStr){
+  var html='<div style="font-family:sans-serif;font-size:14px;color:#0f172a;max-width:680px;margin:0 auto">';
+  html+='<div style="background:linear-gradient(135deg,#1d4ed8,#7c3aed);padding:20px 24px;border-radius:10px 10px 0 0">';
+  html+='<h2 style="color:#fff;margin:0;font-size:18px">&#128276; F&amp;O Expiry Alert</h2>';
+  html+='<p style="color:#bfdbfe;margin:4px 0 0;font-size:12px">Futures &amp; Options Expiry Tracker</p></div>';
+  html+='<div style="border:1px solid #e2e8f0;border-top:none;padding:20px 24px;border-radius:0 0 10px 10px">';
+  if(todayRows.length)html+=nfBuildTable(todayRows,'📅 Expiring Today — '+todayStr);
+  if(tomorrowRows.length)html+=nfBuildTable(tomorrowRows,'⏰ Expiring Tomorrow — '+tomorrowStr);
+  html+='<p style="font-size:11px;color:#94a3b8;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:12px">This is an automated alert from your F&amp;O Expiry Tracker. Manage notification settings in the app.</p>';
+  html+='</div></div>';
+  return html;
+}
+
+async function nfSendEmail(subject,bodyHtml,isTest){
+  var s=nfSettings();
+  if(!s||!s.pubkey||!s.svcid||!s.tplid||!s.email)return false;
+  try{
+    /* Load EmailJS SDK lazily */
+    if(!window.emailjs){
+      await new Promise(function(res,rej){
+        var sc=document.createElement('script');
+        sc.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+        sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);
+      });
+      emailjs.init({publicKey:s.pubkey});
+    }
+    var params={to_email:s.email,subject:subject,body:bodyHtml};
+    await emailjs.send(s.svcid,s.tplid,params);
+    if(!isTest){
+      var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
+      sent[nfDateStr(0)]=true;
+      localStorage.setItem(NF_SENT_KEY,JSON.stringify(sent));
+    }
+    return true;
+  }catch(e){console.error('EmailJS error',e);return false;}
+}
+
+async function testNotifEmail(){
+  var s=nfSettings();
+  if(!s||!s.email){nfStatus('Save your settings first.','var(--red)');return;}
+  nfStatus('Sending test email…','var(--muted)');
+  /* build sample rows from all data */
+  var sample=[IDX_DATA[0],MCX_DATA[0],EQ_DATA[0]].filter(Boolean).map(function(r){return{name:r.name,exch:r.exch,expiry:r.expiry,lot:r.lot};});
+  var body=nfBuildBody(sample,[],nfDateStr(0),'');
+  var ok=await nfSendEmail('Test – F&O Expiry Tracker Notification',body,true);
+  nfStatus(ok?'✓ Test email sent! Check your inbox.':'✗ Failed. Check your EmailJS credentials and template.', ok?'var(--green)':'var(--red)');
+}
+
+function nfAlreadySentToday(){
+  try{
+    var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
+    return !!sent[nfDateStr(0)];
+  }catch(e){return false;}
+}
+
+async function nfCheckAndSend(){
+  var s=nfSettings();
+  if(!s||!s.email||!s.pubkey)return;
+  if(nfAlreadySentToday())return;
+  var today=nfDateStr(0),tomorrow=nfDateStr(1);
+  var all=IDX_DATA.concat(EQ_DATA).concat(MCX_DATA);
+  var todayRows=all.filter(function(r){return r.expiry===today;});
+  var tomorrowRows=all.filter(function(r){return r.expiry===tomorrow;});
+  if(!todayRows.length&&!tomorrowRows.length)return;
+  var parts=[];
+  if(todayRows.length)parts.push(todayRows.length+' expiring today');
+  if(tomorrowRows.length)parts.push(tomorrowRows.length+' expiring tomorrow');
+  var subject='F&O Expiry Alert – '+parts.join(' | ')+' ('+today+')';
+  var body=nfBuildBody(todayRows,tomorrowRows,today,tomorrow);
+  await nfSendEmail(subject,body,false);
+}
+
+/* close modal on backdrop click */
+document.getElementById('notif-modal').addEventListener('click',function(e){if(e.target===this)closeNotifModal();});
+
+window.onload=function(){init();nfCheckAndSend();};</script></body></html>
