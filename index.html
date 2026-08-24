@@ -1,5 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Future &amp; Options Expiry Tracker</title><style>*{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;--text:#e2e8f0;--muted:#64748b;--accent:#3b82f6;--accent2:#60a5fa;--gold:#f59e0b;--green:#10b981;--red:#ef4444;--teal:#14b8a6;}
+body.light{--bg:#f1f5f9;--surface:#ffffff;--surface2:#e8edf5;--border:#cbd5e1;--text:#0f172a;--muted:#64748b;--accent:#2563eb;--accent2:#1d4ed8;--gold:#b45309;--green:#059669;--red:#dc2626;--teal:#0d9488;}
 html,body{height:100%}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px;display:flex;flex-direction:column;min-height:100vh}
 .hdr{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex-shrink:0}
@@ -21,7 +22,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .tbtn.gr{color:var(--green);border-color:rgba(16,185,129,.3)}
 .tbtn.gr:hover{background:rgba(16,185,129,.08)}
 .ar-info{font-size:.68rem;color:var(--muted)}
-.body-wrap{display:flex;flex:1;overflow:hidden;min-height:0;padding:12px 16px;gap:12px}
+.body-wrap{display:flex;flex:1;overflow:hidden;min-height:0;padding:12px 10%;gap:12px}
 .panel{flex:1;min-width:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
 .panel-eq{overflow:auto}
 .phdr{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;background:var(--surface);flex-shrink:0}
@@ -41,8 +42,8 @@ table.mt tbody tr:hover{background:var(--surface2)}
 table.mt tbody tr.alt{background:rgba(10,14,26,.4)}
 table.mt td{padding:5px 10px;white-space:nowrap}
 .cs{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.75rem}
-.ce{color:var(--muted);font-size:.7rem}.cl{text-align:right;font-weight:600}
-.cp{text-align:right;font-family:'JetBrains Mono',monospace;font-size:.74rem}.cn{color:var(--muted);font-size:.7rem}
+.ce{color:#a78bfa;font-size:.82rem;font-weight:600}.cl{text-align:right;font-weight:600}
+.cp{text-align:right;font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700}.cn{color:var(--text);font-size:.82rem;font-weight:500}
 .eq-sticky-hdr{position:sticky;top:0;z-index:10;background:var(--surface)}
 table.et{width:100%;border-collapse:collapse;font-size:.8rem}
 table.et thead th{background:var(--surface2);padding:7px 14px;text-align:left;color:var(--muted);font-weight:600;font-size:.7rem;letter-spacing:.03em;cursor:pointer;white-space:nowrap;border-bottom:1px solid var(--border)}
@@ -51,9 +52,9 @@ table.et tbody tr{border-bottom:1px solid rgba(30,45,69,.35)}
 table.et tbody tr:hover{background:var(--surface2)}
 table.et tbody tr.alt{background:rgba(17,24,39,.4)}
 table.et td{padding:7px 14px;white-space:nowrap}
-.es{font-family:'JetBrains Mono',monospace;font-weight:700}.en{color:var(--muted);font-size:.74rem}.ee{color:var(--muted);font-size:.74rem}
-.el{text-align:right;color:var(--green);font-weight:700}.ep{text-align:right;font-family:'JetBrains Mono',monospace}
-.up{color:var(--green)!important}.dn{color:var(--red)!important}.na{color:var(--muted)!important}
+.es{font-family:'JetBrains Mono',monospace;font-weight:700}.en{color:var(--text);font-size:.85rem;font-weight:500}.ee{color:#a78bfa;font-size:.85rem;font-weight:600}
+.el{text-align:right;color:var(--green);font-weight:700}.ep{text-align:right;font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700}
+.up{color:var(--green)!important;font-weight:700}.dn{color:var(--red)!important;font-weight:700}.na{color:var(--text)!important;opacity:.7}
 .idx-c{color:var(--gold)!important}.mcx-c{color:var(--teal)!important}
 .fb{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.78rem;padding:1px 3px;border-radius:3px;transition:.12s;vertical-align:middle}
 .fb:hover{color:var(--accent2);background:rgba(59,130,246,.1)}
@@ -71,7 +72,7 @@ table.et td{padding:7px 14px;white-space:nowrap}
 .opt-badge{background:#3b1a1a;color:#f87171;border:1px solid #dc2626}
 @media(max-width:900px){
   .hdr-pills{display:none}
-  .body-wrap{flex-direction:column;overflow:visible;padding:8px}
+  .body-wrap{flex-direction:column;overflow:visible;padding:8px 4%}
   .panel{min-height:280px}
   .lscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:visible}
   table.mt,table.et{min-width:420px}
@@ -103,6 +104,7 @@ table.et td{padding:7px 14px;white-space:nowrap}
   </div>
   <button class="tbtn gr" onclick="refreshAll()">&#8635; Refresh Prices</button>
   <button class="tbtn" id="arBtn" onclick="toggleAR()">&#9711; Auto-refresh</button>
+  <button class="tbtn" id="themeBtn" onclick="toggleTheme()" style="margin-left:auto">&#9788; Light</button>
   <span class="ar-info" id="arInfo"></span>
 </div>
 <div class="body-wrap">
@@ -215,6 +217,7 @@ function gP(p){S.eq.pg=p;rEq();}
 function render(){rL('idx');rL('mcx');rEq();}
 var YT={
   "NIFTY":"^NSEI","BANKNIFTY":"^NSEBANK","FINNIFTY":"^CNXFIN",
+  "SENSEX":"^BSESN","BANKEX":"^BSEBANKEX","SENSEX50":"^BSESNX","FOCIT":null,
   "BAJAJ-AUTO":"BAJAJ-AUTO.NS","M&M":"MM.NS","NAM-INDIA":"NIPPONA.NS",
   "ALUMINI":"ALI=F","ALUMINIUM":"ALI=F","COPPER":"HG=F",
   "GOLDGUINEA":"GC=F","GOLDPETAL":"GC=F","GOLDTEN":"GC=F",
@@ -222,10 +225,17 @@ var YT={
   "SILVER100":"SI=F","SILVERM":"SI=F","SILVERMIC":"SI=F",
   "ZINC":"ZNC=F","ZINCMINI":"ZNC=F"
 };
-function yTicker(und){return YT[und]||(und+'.NS');}
+function yTicker(und){if(YT.hasOwnProperty(und))return YT[und];return und+'.NS';}
+var darkMode=true;
+function toggleTheme(){
+  darkMode=!darkMode;
+  document.body.classList.toggle('light',!darkMode);
+  document.getElementById('themeBtn').textContent=darkMode?'☀ Light':'🌙 Dark';
+}
 async function fetchOne(und,btn){
   if(btn){btn.textContent='…';btn.disabled=true;}
   var ticker=yTicker(und);
+  if(!ticker){if(btn){btn.textContent='↺';btn.disabled=false;}return;}
   var val=null;
   try{
     var r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(ticker)+'?interval=1d&range=1d',{signal:AbortSignal.timeout(8000)});
