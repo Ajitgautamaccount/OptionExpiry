@@ -70,12 +70,13 @@ table.et td{padding:7px 14px;white-space:nowrap}
 .type-badge{display:inline-block;font-size:.55rem;font-weight:700;padding:1px 4px;border-radius:3px;margin-left:4px;vertical-align:middle;letter-spacing:.03em}
 .fut-badge{background:#1e3a5f;color:#60a5fa;border:1px solid #2563eb}
 .opt-badge{background:#3b1a1a;color:#f87171;border:1px solid #dc2626}
+.cm{text-align:right;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--gold);font-weight:600;white-space:nowrap}
 @media(max-width:900px){
   .hdr-pills{display:none}
   .body-wrap{flex-direction:column;overflow:visible;padding:8px 4%}
   .panel{min-height:280px}
   .lscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:visible}
-  table.mt,table.et{min-width:420px}
+  table.mt,table.et{min-width:520px}
   .eq-sticky-hdr{position:static}.pg{position:static}
 }</style></head><body><link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -118,6 +119,7 @@ table.et td{padding:7px 14px;white-space:nowrap}
         <th onclick="sortL('idx','expiry')">Expiry</th>
         <th onclick="sortL('idx','lot')" style="text-align:right">Lot</th>
         <th style="text-align:right">LTP</th>
+        <th style="text-align:right" title="Estimated SPAN+Exposure margin to sell 1 lot">Margin (Est.)</th>
       </tr></thead><tbody id="idx-tb"></tbody></table>
     </div>
   </div>
@@ -131,6 +133,7 @@ table.et td{padding:7px 14px;white-space:nowrap}
         <th onclick="sortL('mcx','expiry')">Expiry</th>
         <th onclick="sortL('mcx','lot')" style="text-align:right">Lot</th>
         <th style="text-align:right">LTP</th>
+        <th style="text-align:right" title="Estimated SPAN+Exposure margin to sell 1 lot">Margin (Est.)</th>
       </tr></thead><tbody id="mcx-tb"></tbody></table>
     </div>
   </div>
@@ -139,18 +142,19 @@ table.et td{padding:7px 14px;white-space:nowrap}
     <div class="eq-sticky-hdr">
       <div class="phdr ge"><div class="pico">&#128200;</div><h3>Equity Futures &amp; Options</h3><span class="pcnt" id="cnt-eq">—</span></div>
       <table class="et" style="table-layout:fixed;width:100%">
-        <colgroup><col style="width:140px"><col style="width:120px"><col style="width:90px"><col style="width:70px"><col style="width:110px"></colgroup>
+        <colgroup><col style="width:130px"><col style="width:100px"><col style="width:80px"><col style="width:60px"><col style="width:100px"><col style="width:110px"></colgroup>
         <thead><tr>
           <th onclick="sortR('sym')">Symbol</th>
           <th onclick="sortR('name')">Name</th>
           <th onclick="sortR('expiry')">Expiry</th>
           <th onclick="sortR('lot')" style="text-align:right">Lot &#8595;</th>
           <th style="text-align:right">LTP</th>
+          <th style="text-align:right" title="Estimated SPAN+Exposure margin to sell 1 lot">Margin (Est.)</th>
         </tr></thead>
       </table>
     </div>
     <table class="et" style="table-layout:fixed;width:100%">
-      <colgroup><col style="width:140px"><col style="width:120px"><col style="width:90px"><col style="width:70px"><col style="width:110px"></colgroup>
+      <colgroup><col style="width:130px"><col style="width:100px"><col style="width:80px"><col style="width:60px"><col style="width:100px"><col style="width:110px"></colgroup>
       <tbody id="eq-tb"></tbody>
     </table>
     <div class="pg" id="eq-pg"></div>
@@ -197,18 +201,21 @@ function sortL(k,col){if(S[k].sort===col)S[k].dir*=-1;else{S[k].sort=col;S[k].di
 function sortR(col){if(S.eq.sort===col)S.eq.dir*=-1;else{S.eq.sort=col;S.eq.dir=(col==='lot'?-1:1);}doSort('eq');S.eq.pg=1;rEq();}
 function doSort(k){var c=S[k].sort,d=S[k].dir;S[k].filt.sort(function(a,b){var av=a[c]!=null?a[c]:'',bv=b[c]!=null?b[c]:'';if(c==='lot'||c==='lp')return(parseFloat(av)-parseFloat(bv))*d;return av<bv?-d:av>bv?d:0;});}
 function ltpH(r){var v=pCache[r.und];if(v!=null){var cl=v>r.lp?'up':v<r.lp?'dn':'';return'<span class="'+cl+'">'+fN(v)+'</span>';}return'<span class="na">'+fN(r.lp)+'</span>';}
+/* Margin % by segment: Index FUT 12%, Stock FUT 17%, MCX FUT 10%, MCX OPT 15%, BFO 12% */
+function mPct(r){if(r.exch==='MCX')return r.type==='OPT'?0.15:0.10;if(r.exch==='BFO')return 0.12;if(r.exch==='NFO'&&(r.sym.indexOf('NIFTY')>=0||r.sym.indexOf('SENSEX')>=0||r.sym.indexOf('BANKNIFTY')>=0||r.sym.indexOf('FINNIFTY')>=0||r.sym.indexOf('MIDCP')>=0))return 0.12;return 0.17;}
+function mgnH(r){var price=pCache[r.und]!=null?pCache[r.und]:r.lp;if(!price||price<=0||!r.lot)return'<span style="color:var(--muted)">—</span>';var m=Math.round(price*r.lot*mPct(r));return'<span style="color:var(--gold)">~₹'+m.toLocaleString('en-IN')+'</span>';}
 function rL(k){
   var isIdx=k==='idx';var h='';
-  S[k].filt.forEach(function(r,i){var sc=isIdx?'cs idx-c':'cs mcx-c';var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';var badge=(!isIdx&&r.type)?'<span class="type-badge '+(r.type==='OPT'?'opt-badge':'fut-badge')+'">'+r.type+'</span>':'';h+='<tr class="'+(i%2?'':'alt')+'"><td class="'+sc+'">'+r.sym+badge+'</td><td class="cn">'+r.name+'</td><td class="ce">'+fD(r.expiry)+'</td><td class="cl">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="cp">'+fb+ltpH(r)+'</td></tr>';});
-  document.getElementById(k+'-tb').innerHTML=h||'<tr><td colspan="5" class="empty">No data</td></tr>';
+  S[k].filt.forEach(function(r,i){var sc=isIdx?'cs idx-c':'cs mcx-c';var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';var badge=(!isIdx&&r.type)?'<span class="type-badge '+(r.type==='OPT'?'opt-badge':'fut-badge')+'">'+r.type+'</span>':'';h+='<tr class="'+(i%2?'':'alt')+'"><td class="'+sc+'">'+r.sym+badge+'</td><td class="cn">'+r.name+'</td><td class="ce">'+fD(r.expiry)+'</td><td class="cl">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="cp">'+fb+ltpH(r)+'</td><td class="cm">'+mgnH(r)+'</td></tr>';});
+  document.getElementById(k+'-tb').innerHTML=h||'<tr><td colspan="6" class="empty">No data</td></tr>';
   document.getElementById('cnt-'+k).textContent=S[k].filt.length;
   if(k==='idx')document.getElementById('s-idx').textContent=S.idx.filt.length;
   if(k==='mcx')document.getElementById('s-mcx').textContent=S.mcx.filt.length;
 }
 function rEq(){
   var data=S.eq.filt,pg=S.eq.pg,PG=S.eq.PG,total=data.length;var s=(pg-1)*PG,e=Math.min(pg*PG,total),h='';
-  for(var i=s;i<e;i++){var r=data[i];var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';h+='<tr class="'+(i%2===0?'alt':'')+'"><td class="es">'+r.sym+'</td><td class="en" title="'+r.name+'">'+r.name+'</td><td class="ee">'+fD(r.expiry)+'</td><td class="el">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="ep">'+fb+ltpH(r)+'</td></tr>';}
-  document.getElementById('eq-tb').innerHTML=h||'<tr><td colspan="5" class="empty">No results</td></tr>';
+  for(var i=s;i<e;i++){var r=data[i];var fb='<button class="fb" onclick="fetchOne(\''+r.und+'\',this)">&#8635;</button>';h+='<tr class="'+(i%2===0?'alt':'')+'"><td class="es">'+r.sym+'</td><td class="en" title="'+r.name+'">'+r.name+'</td><td class="ee">'+fD(r.expiry)+'</td><td class="el">'+(r.lot?r.lot.toLocaleString():'—')+'</td><td class="ep">'+fb+ltpH(r)+'</td><td class="cm">'+mgnH(r)+'</td></tr>';}
+  document.getElementById('eq-tb').innerHTML=h||'<tr><td colspan="6" class="empty">No results</td></tr>';
   document.getElementById('cnt-eq').textContent=total;document.getElementById('s-eq').textContent=total;
   bPg(total,pg,PG);
 }
@@ -251,4 +258,6 @@ async function refreshAll(){
   for(var i=0;i<unds.length;i++){await fetchOne(unds[i],null);await new Promise(function(res){setTimeout(res,600);});}
 }
 function toggleAR(){arOn=!arOn;var b=document.getElementById('arBtn');if(arOn){b.classList.add('on');arT=setInterval(refreshAll,60000);document.getElementById('arInfo').textContent='ON (60s)';}else{b.classList.remove('on');clearInterval(arT);document.getElementById('arInfo').textContent='';}}
+/* Hourly margin refresh: fetch all prices every 60 minutes so margin estimates stay current */
+var mgnTimer=setInterval(function(){refreshAll();},3600000);
 window.onload=init;</script></body></html>
