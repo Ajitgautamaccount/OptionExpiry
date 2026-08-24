@@ -543,18 +543,18 @@ function nfAlreadySentToday(){
 }
 
 function nfBuildTgMsg(todayRows,tomorrowRows,todayStr,tomorrowStr){
-  var lines=['📊 *F\\&O Expiry Alert*',''];
+  var lines=['📊 F&O Expiry Alert',''];
   if(todayRows.length){
-    lines.push('📅 *Expiring Today – '+todayStr+'*');
-    todayRows.forEach(function(r){lines.push('• '+r.name+' \\| '+r.exch+' \\| Lot: '+r.lot.toLocaleString('en-IN'));});
+    lines.push('📅 Expiring Today – '+todayStr);
+    todayRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
     lines.push('');
   }
   if(tomorrowRows.length){
-    lines.push('⏰ *Expiring Tomorrow – '+tomorrowStr+'*');
-    tomorrowRows.forEach(function(r){lines.push('• '+r.name+' \\| '+r.exch+' \\| Lot: '+r.lot.toLocaleString('en-IN'));});
+    lines.push('⏰ Expiring Tomorrow – '+tomorrowStr);
+    tomorrowRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
     lines.push('');
   }
-  lines.push('_F\\&O Expiry Tracker_');
+  lines.push('F&O Expiry Tracker');
   return lines.join('\n');
 }
 
@@ -562,11 +562,11 @@ async function nfSendTelegram(msg,isTest){
   var s=nfSettings();
   if(!s||!s.tgtoken||!s.tgchatid)return false;
   try{
-    var url='https://api.telegram.org/bot'+encodeURIComponent(s.tgtoken)+'/sendMessage';
+    var url='https://api.telegram.org/bot'+s.tgtoken+'/sendMessage';
     var r=await fetch(url,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:s.tgchatid,text:msg,parse_mode:'MarkdownV2'})
+      body:JSON.stringify({chat_id:s.tgchatid,text:msg})
     });
     var j=await r.json();
     if(!j.ok)throw new Error(j.description||'Telegram API error');
