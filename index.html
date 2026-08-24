@@ -417,10 +417,10 @@ function nfBuildTgMsg(rows,dateStr){
 
 async function nfSendTelegram(msg,isTest,sentKey){
   var s=nfSettings();
-  if(!s||!s.tgtoken||!s.tgchatid)return false;
+  if(!s||!s.tgtoken||!s.tgchatid)return{ok:0,fail:0,errors:[]};
   var ids=s.tgchatid.split(',').map(function(x){return x.trim();}).filter(Boolean);
   var url='https://api.telegram.org/bot'+s.tgtoken+'/sendMessage';
-  var allOk=true;
+  var okCount=0,errors=[];
   for(var i=0;i<ids.length;i++){
     try{
       var r=await fetch(url,{
@@ -430,15 +430,20 @@ async function nfSendTelegram(msg,isTest,sentKey){
       });
       var j=await r.json();
       if(!j.ok)throw new Error(j.description||'Telegram API error');
-    }catch(e){console.error('Telegram error for '+ids[i],e);allOk=false;}
+      okCount++;
+    }catch(e){
+      var desc=e.message||String(e);
+      console.error('Telegram error for '+ids[i],desc);
+      errors.push(ids[i]+': '+desc);
+    }
   }
-  if(allOk&&!isTest){
+  if(okCount>0&&!isTest){
     var key=sentKey||('tg_'+nfDateStr(0));
     var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
     sent[key]=true;
     localStorage.setItem(NF_SENT_KEY,JSON.stringify(sent));
   }
-  return allOk;
+  return{ok:okCount,fail:errors.length,errors:errors,total:ids.length};
 }
 
 function nfTgAlreadySentToday(){
@@ -492,14 +497,25 @@ function nfBuildWeeklyTgMsg(rows){
   return '```\n'+lines.join('\n')+'\n```';
 }
 
+function nfResultStatus(res,label){
+  if(!res.total){nfStatus('No Chat IDs configured.','var(--red)');return;}
+  if(res.ok===res.total){
+    nfStatus('✓ '+label+' sent to all '+res.total+' recipient'+(res.total>1?'s':'')+'!','#2196f3');
+  } else if(res.ok>0){
+    nfStatus('⚠ Sent to '+res.ok+'/'+res.total+'. Failed: '+res.errors.join(' | '),'#f59e0b');
+  } else {
+    nfStatus('✗ All failed. '+res.errors.join(' | '),'var(--red)');
+  }
+}
+
 async function testWaMsg(){
   var s=nfSettings();
   if(!s||!s.tgtoken||!s.tgchatid){nfStatus('Save Telegram settings first.','var(--red)');return;}
   nfStatus('Sending test daily message…','var(--muted)');
   var sample=(IDX_DATA.slice(0,2).concat(MCX_DATA.slice(0,2))).filter(Boolean);
   var msg=nfBuildTgMsg(sample,nfDateStr(1));
-  var ok=await nfSendTelegram(msg,true);
-  nfStatus(ok?'✓ Daily test sent! Check Telegram.':'✗ Failed. Check your Bot Token and Chat ID.',ok?'#2196f3':'var(--red)');
+  var res=await nfSendTelegram(msg,true);
+  nfResultStatus(res,'Daily test');
 }
 
 async function testWeeklyMsg(){
@@ -509,8 +525,8 @@ async function testWeeklyMsg(){
   var sample=(IDX_DATA.slice(0,3).concat(MCX_DATA.slice(0,3))).filter(Boolean);
   var msg=nfBuildWeeklyTgMsg(sample);
   if(!msg){nfStatus('No sample data available.','var(--muted)');return;}
-  var ok=await nfSendTelegram(msg,true);
-  nfStatus(ok?'✓ Weekly test sent! Check Telegram.':'✗ Failed. Check your Bot Token and Chat ID.',ok?'#2196f3':'var(--red)');
+  var res=await nfSendTelegram(msg,true);
+  nfResultStatus(res,'Weekly test');
 }
 
 async function nfCheckAndSend(){
