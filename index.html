@@ -555,10 +555,10 @@ function nfBuildTgMsg(rows,dateStr){
   var pad=function(s,n,right){s=String(s);while(s.length<n)s=right?s+' ':' '+s;return s.slice(0,n);};
   var lines=['📊 F&O Expiry Alert — '+dateStr,'⏰ Instruments expiring tomorrow\n'];
   /* header */
-  lines.push(pad('Name',18)+' '+pad('Seg',4)+' '+pad('Lot',7,true)+' '+pad('Margin',12,true)+' Expiry');
-  lines.push('─'.repeat(60));
+  lines.push(pad('Name',18)+' '+pad('Seg',4)+' '+pad('Lot',7,true)+' '+pad('Margin',12,true));
+  lines.push('─'.repeat(44));
   rows.forEach(function(r){
-    lines.push(pad(r.name,18)+' '+pad(r.exch,4)+' '+pad(r.lot.toLocaleString('en-IN'),7,true)+' '+pad(nfMargin(r),12,true)+' '+r.expiry);
+    lines.push(pad(r.name,18)+' '+pad(r.exch,4)+' '+pad(r.lot.toLocaleString('en-IN'),7,true)+' '+pad(nfMargin(r),12,true));
   });
   lines.push('\nF&O Expiry Tracker');
   return '```\n'+lines.join('\n')+'\n```';
