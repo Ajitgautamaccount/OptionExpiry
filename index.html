@@ -131,7 +131,7 @@ body.light .cm{color:#92400e}
     <!-- Tabs -->
     <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:18px">
       <button id="nf-tab-email" onclick="nfTab('email')" style="background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px">&#128231; Email</button>
-      <button id="nf-tab-wa" onclick="nfTab('wa')" style="background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px">&#128240; WhatsApp</button>
+      <button id="nf-tab-wa" onclick="nfTab('wa')" style="background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px">&#9992; Telegram</button>
     </div>
 
     <!-- Email Tab -->
@@ -160,27 +160,30 @@ body.light .cm{color:#92400e}
       </div>
     </div>
 
-    <!-- WhatsApp Tab -->
+    <!-- Telegram Tab -->
     <div id="nf-pane-wa" style="display:none">
-      <p style="font-size:.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Sends a WhatsApp message <strong>1 day before</strong> and <strong>on expiry day</strong>. Powered by <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" style="color:#25d366">CallMeBot</a> (free, no app install needed).</p>
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:.72rem;color:#166534;line-height:1.7">
-        <strong>One-time WhatsApp setup (takes 30 seconds):</strong><br>
-        1. Add <strong>+34 623 91 22 04</strong> to your contacts as "CallMeBot"<br>
-        2. Send this message to that number on WhatsApp: <code style="background:#dcfce7;padding:1px 5px;border-radius:3px">I allow callmebot to send me messages</code><br>
-        3. You'll receive your API key in ~1 minute via WhatsApp<br>
-        4. Enter your phone number and that API key below
+      <p style="font-size:.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Sends a Telegram message <strong>1 day before</strong> and <strong>on expiry day</strong>. Free, instant, no limits — uses the official Telegram Bot API.</p>
+      <div style="background:#ebf5fb;border:1px solid #90caf9;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:.72rem;color:#0d47a1;line-height:1.8">
+        <strong>One-time Telegram setup (2 minutes):</strong><br>
+        1. Open Telegram → search <strong>@BotFather</strong> → send <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">/newbot</code><br>
+        2. Follow prompts to name your bot → copy the <strong>Bot Token</strong> it gives you<br>
+        3. Search for your new bot in Telegram and send it any message (e.g. <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">hi</code>)<br>
+        4. Open this URL in your browser to get your Chat ID:<br>
+        &nbsp;&nbsp;<code style="background:#dbeafe;padding:1px 5px;border-radius:3px;word-break:break-all">https://api.telegram.org/bot<strong>YOUR_TOKEN</strong>/getUpdates</code><br>
+        &nbsp;&nbsp;Look for <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">"id"</code> inside <code style="background:#dbeafe;padding:1px 5px;border-radius:3px">"chat"</code> — that number is your Chat ID<br>
+        5. Enter the token and chat ID below
       </div>
       <div style="display:flex;flex-direction:column;gap:9px">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600">WhatsApp Phone Number <span style="font-weight:400">(with country code, no + or spaces)</span></label>
-        <input id="nf-wa-phone" type="tel" placeholder="919876543210" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">CallMeBot API Key <span style="font-weight:400">(received via WhatsApp)</span></label>
-        <input id="nf-wa-apikey" type="text" placeholder="1234567" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600">Bot Token <span style="font-weight:400">(from @BotFather)</span></label>
+        <input id="nf-tg-token" type="text" placeholder="123456789:AAF..." style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">Chat ID <span style="font-weight:400">(from getUpdates, e.g. 987654321)</span></label>
+        <input id="nf-tg-chatid" type="text" placeholder="987654321" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
       </div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:.71rem;color:var(--muted);line-height:1.5">
-        &#9432; CallMeBot is free and requires no account. Messages are sent via their API which calls WhatsApp on your behalf. Limit: ~20 msgs/min.
+        &#9432; Messages are sent via the official Telegram Bot API. Free, no rate limits for personal use. Your bot token is stored only in your browser's localStorage.
       </div>
       <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
-        <button onclick="saveWaSettings()" style="background:#25d366;color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
+        <button onclick="saveWaSettings()" style="background:#2196f3;color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
         <button onclick="testWaMsg()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 16px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test</button>
         <button onclick="clearWaSettings()" style="background:none;border:none;color:var(--red);font-size:.74rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
       </div>
@@ -388,7 +391,7 @@ function nfTab(tab){
   document.getElementById('nf-pane-email').style.display=isEmail?'block':'none';
   document.getElementById('nf-pane-wa').style.display=isEmail?'none':'block';
   document.getElementById('nf-tab-email').style.cssText='background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:'+(isEmail?'var(--accent)':'var(--muted)')+';border-bottom:2px solid '+(isEmail?'var(--accent)':'transparent')+';margin-bottom:-2px';
-  document.getElementById('nf-tab-wa').style.cssText='background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:'+(!isEmail?'#25d366':'var(--muted)')+';border-bottom:2px solid '+(!isEmail?'#25d366':'transparent')+';margin-bottom:-2px';
+  document.getElementById('nf-tab-wa').style.cssText='background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:'+(!isEmail?'#2196f3':'var(--muted)')+';border-bottom:2px solid '+(!isEmail?'#2196f3':'transparent')+';margin-bottom:-2px';
   document.getElementById('nf-status').textContent='';
 }
 
@@ -398,8 +401,8 @@ function openNotifModal(){
   document.getElementById('nf-pubkey').value=s.pubkey||'';
   document.getElementById('nf-svcid').value=s.svcid||'';
   document.getElementById('nf-tplid').value=s.tplid||'';
-  document.getElementById('nf-wa-phone').value=s.waphone||'';
-  document.getElementById('nf-wa-apikey').value=s.wakey||'';
+  document.getElementById('nf-tg-token').value=s.tgtoken||'';
+  document.getElementById('nf-tg-chatid').value=s.tgchatid||'';
   document.getElementById('nf-status').textContent='';
   nfTab('email');
   var m=document.getElementById('notif-modal');
@@ -434,22 +437,22 @@ function clearNotifSettings(){
 
 function saveWaSettings(){
   var s=nfSettings()||{};
-  s.waphone=document.getElementById('nf-wa-phone').value.trim().replace(/\D/g,'');
-  s.wakey=document.getElementById('nf-wa-apikey').value.trim();
-  if(!s.waphone||!s.wakey){
-    nfStatus('Please fill in phone number and API key.','var(--red)');return;
+  s.tgtoken=document.getElementById('nf-tg-token').value.trim();
+  s.tgchatid=document.getElementById('nf-tg-chatid').value.trim();
+  if(!s.tgtoken||!s.tgchatid){
+    nfStatus('Please fill in Bot Token and Chat ID.','var(--red)');return;
   }
   localStorage.setItem(NF_KEY,JSON.stringify(s));
-  nfStatus('✓ WhatsApp settings saved.','#25d366');
+  nfStatus('✓ Telegram settings saved.','#2196f3');
 }
 
 function clearWaSettings(){
   var s=nfSettings()||{};
-  delete s.waphone;delete s.wakey;
+  delete s.tgtoken;delete s.tgchatid;
   localStorage.setItem(NF_KEY,JSON.stringify(s));
-  document.getElementById('nf-wa-phone').value='';
-  document.getElementById('nf-wa-apikey').value='';
-  nfStatus('WhatsApp notifications disabled.','var(--muted)');
+  document.getElementById('nf-tg-token').value='';
+  document.getElementById('nf-tg-chatid').value='';
+  nfStatus('Telegram notifications disabled.','var(--muted)');
 }
 
 function nfStatus(msg,color){
@@ -539,53 +542,58 @@ function nfAlreadySentToday(){
   }catch(e){return false;}
 }
 
-function nfBuildWaMsg(todayRows,tomorrowRows,todayStr,tomorrowStr){
-  var lines=['📊 *F&O Expiry Alert*',''];
+function nfBuildTgMsg(todayRows,tomorrowRows,todayStr,tomorrowStr){
+  var lines=['📊 *F\\&O Expiry Alert*',''];
   if(todayRows.length){
     lines.push('📅 *Expiring Today – '+todayStr+'*');
-    todayRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
+    todayRows.forEach(function(r){lines.push('• '+r.name+' \\| '+r.exch+' \\| Lot: '+r.lot.toLocaleString('en-IN'));});
     lines.push('');
   }
   if(tomorrowRows.length){
     lines.push('⏰ *Expiring Tomorrow – '+tomorrowStr+'*');
-    tomorrowRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
+    tomorrowRows.forEach(function(r){lines.push('• '+r.name+' \\| '+r.exch+' \\| Lot: '+r.lot.toLocaleString('en-IN'));});
     lines.push('');
   }
-  lines.push('_F&O Expiry Tracker_');
+  lines.push('_F\\&O Expiry Tracker_');
   return lines.join('\n');
 }
 
-async function nfSendWhatsApp(msg,isTest){
+async function nfSendTelegram(msg,isTest){
   var s=nfSettings();
-  if(!s||!s.waphone||!s.wakey)return false;
+  if(!s||!s.tgtoken||!s.tgchatid)return false;
   try{
-    var url='https://api.callmebot.com/whatsapp.php?phone='+encodeURIComponent(s.waphone)+'&apikey='+encodeURIComponent(s.wakey)+'&text='+encodeURIComponent(msg);
-    var r=await fetch(url,{mode:'no-cors'});
-    /* no-cors: we can't read the response body, treat as optimistic success */
+    var url='https://api.telegram.org/bot'+encodeURIComponent(s.tgtoken)+'/sendMessage';
+    var r=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:s.tgchatid,text:msg,parse_mode:'MarkdownV2'})
+    });
+    var j=await r.json();
+    if(!j.ok)throw new Error(j.description||'Telegram API error');
     if(!isTest){
       var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
-      sent['wa_'+nfDateStr(0)]=true;
+      sent['tg_'+nfDateStr(0)]=true;
       localStorage.setItem(NF_SENT_KEY,JSON.stringify(sent));
     }
     return true;
-  }catch(e){console.error('WhatsApp error',e);return false;}
+  }catch(e){console.error('Telegram error',e);return false;}
 }
 
-function nfWaAlreadySentToday(){
+function nfTgAlreadySentToday(){
   try{
     var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
-    return !!sent['wa_'+nfDateStr(0)];
+    return !!sent['tg_'+nfDateStr(0)];
   }catch(e){return false;}
 }
 
 async function testWaMsg(){
   var s=nfSettings();
-  if(!s||!s.waphone||!s.wakey){nfStatus('Save WhatsApp settings first.','var(--red)');return;}
-  nfStatus('Sending test WhatsApp message…','var(--muted)');
+  if(!s||!s.tgtoken||!s.tgchatid){nfStatus('Save Telegram settings first.','var(--red)');return;}
+  nfStatus('Sending test Telegram message…','var(--muted)');
   var sample=[IDX_DATA[0],MCX_DATA[0],EQ_DATA[0]].filter(Boolean).map(function(r){return{name:r.name,exch:r.exch,expiry:r.expiry,lot:r.lot};});
-  var msg=nfBuildWaMsg(sample,[],nfDateStr(0),'');
-  var ok=await nfSendWhatsApp(msg,true);
-  nfStatus(ok?'✓ Test message sent! Check WhatsApp (may take a few seconds).':'✗ Failed. Check phone number and API key.',ok?'#25d366':'var(--red)');
+  var msg=nfBuildTgMsg(sample,[],nfDateStr(0),'');
+  var ok=await nfSendTelegram(msg,true);
+  nfStatus(ok?'✓ Test message sent! Check Telegram.':'✗ Failed. Check your Bot Token and Chat ID.',ok?'#2196f3':'var(--red)');
 }
 
 async function nfCheckAndSend(){
@@ -605,10 +613,10 @@ async function nfCheckAndSend(){
     var body=nfBuildBody(todayRows,tomorrowRows,today,tomorrow);
     await nfSendEmail(subject,body,false);
   }
-  /* WhatsApp */
-  if(s.waphone&&s.wakey&&!nfWaAlreadySentToday()){
-    var waMsg=nfBuildWaMsg(todayRows,tomorrowRows,today,tomorrow);
-    await nfSendWhatsApp(waMsg,false);
+  /* Telegram */
+  if(s.tgtoken&&s.tgchatid&&!nfTgAlreadySentToday()){
+    var tgMsg=nfBuildTgMsg(todayRows,tomorrowRows,today,tomorrow);
+    await nfSendTelegram(tgMsg,false);
   }
 }
 
