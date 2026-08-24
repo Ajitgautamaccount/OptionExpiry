@@ -473,6 +473,7 @@ function nfBuildTable(rows,label){
   html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Segment</th>';
   html+='<th style="padding:8px 12px;text-align:left;border:1px solid #93c5fd">Expiry</th>';
   html+='<th style="padding:8px 12px;text-align:right;border:1px solid #93c5fd">Lot Size</th>';
+  html+='<th style="padding:8px 12px;text-align:right;border:1px solid #93c5fd">Margin (Est.)</th>';
   html+='</tr></thead><tbody>';
   rows.forEach(function(r,i){
     var bg=i%2===0?'#f8fafc':'#eff6ff';
@@ -481,6 +482,7 @@ function nfBuildTable(rows,label){
     html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;color:#6d28d9">'+r.exch+'</td>';
     html+='<td style="padding:7px 12px;border:1px solid #cbd5e1">'+r.expiry+'</td>';
     html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;text-align:right">'+r.lot.toLocaleString('en-IN')+'</td>';
+    html+='<td style="padding:7px 12px;border:1px solid #cbd5e1;text-align:right;color:#b45309;font-weight:600">'+nfMargin(r)+'</td>';
     html+='</tr>';
   });
   html+='</tbody></table>';
@@ -542,20 +544,24 @@ function nfAlreadySentToday(){
   }catch(e){return false;}
 }
 
-function nfBuildTgMsg(todayRows,tomorrowRows,todayStr,tomorrowStr){
-  var lines=['📊 F&O Expiry Alert',''];
-  if(todayRows.length){
-    lines.push('📅 Expiring Today – '+todayStr);
-    todayRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
-    lines.push('');
-  }
-  if(tomorrowRows.length){
-    lines.push('⏰ Expiring Tomorrow – '+tomorrowStr);
-    tomorrowRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
-    lines.push('');
-  }
-  lines.push('F&O Expiry Tracker');
-  return lines.join('\n');
+function nfMargin(r){
+  var price=pCache[r.und]!=null?pCache[r.und]:(r.exch==='MCX'&&r.type==='OPT'&&futLp[r.und]?futLp[r.und]:r.lp);
+  if(!price||price<=0||!r.lot)return'—';
+  return'~₹'+Math.round(price*r.lot*mPct(r)).toLocaleString('en-IN');
+}
+
+function nfBuildTgMsg(rows,dateStr){
+  /* Monospace table for Telegram */
+  var pad=function(s,n,right){s=String(s);while(s.length<n)s=right?s+' ':' '+s;return s.slice(0,n);};
+  var lines=['📊 F&O Expiry Alert — '+dateStr,'⏰ Instruments expiring tomorrow\n'];
+  /* header */
+  lines.push(pad('Name',18)+' '+pad('Seg',4)+' '+pad('Lot',7,true)+' '+pad('Margin',12,true)+' Expiry');
+  lines.push('─'.repeat(60));
+  rows.forEach(function(r){
+    lines.push(pad(r.name,18)+' '+pad(r.exch,4)+' '+pad(r.lot.toLocaleString('en-IN'),7,true)+' '+pad(nfMargin(r),12,true)+' '+r.expiry);
+  });
+  lines.push('\nF&O Expiry Tracker');
+  return '```\n'+lines.join('\n')+'\n```';
 }
 
 async function nfSendTelegram(msg,isTest){
@@ -566,7 +572,7 @@ async function nfSendTelegram(msg,isTest){
     var r=await fetch(url,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:s.tgchatid,text:msg})
+      body:JSON.stringify({chat_id:s.tgchatid,text:msg,parse_mode:'Markdown'})
     });
     var j=await r.json();
     if(!j.ok)throw new Error(j.description||'Telegram API error');
@@ -590,8 +596,8 @@ async function testWaMsg(){
   var s=nfSettings();
   if(!s||!s.tgtoken||!s.tgchatid){nfStatus('Save Telegram settings first.','var(--red)');return;}
   nfStatus('Sending test Telegram message…','var(--muted)');
-  var sample=[IDX_DATA[0],MCX_DATA[0],EQ_DATA[0]].filter(Boolean).map(function(r){return{name:r.name,exch:r.exch,expiry:r.expiry,lot:r.lot};});
-  var msg=nfBuildTgMsg(sample,[],nfDateStr(0),'');
+  var sample=(IDX_DATA.slice(0,2).concat(MCX_DATA.slice(0,2))).filter(Boolean);
+  var msg=nfBuildTgMsg(sample,nfDateStr(1));
   var ok=await nfSendTelegram(msg,true);
   nfStatus(ok?'✓ Test message sent! Check Telegram.':'✗ Failed. Check your Bot Token and Chat ID.',ok?'#2196f3':'var(--red)');
 }
@@ -600,22 +606,18 @@ async function nfCheckAndSend(){
   var s=nfSettings();
   if(!s)return;
   var today=nfDateStr(0),tomorrow=nfDateStr(1);
-  var all=IDX_DATA.concat(EQ_DATA).concat(MCX_DATA);
-  var todayRows=all.filter(function(r){return r.expiry===today;});
-  var tomorrowRows=all.filter(function(r){return r.expiry===tomorrow;});
-  if(!todayRows.length&&!tomorrowRows.length)return;
-  var parts=[];
-  if(todayRows.length)parts.push(todayRows.length+' expiring today');
-  if(tomorrowRows.length)parts.push(tomorrowRows.length+' expiring tomorrow');
+  /* Only Index (NFO) + MCX, only expiring tomorrow */
+  var alertRows=IDX_DATA.concat(MCX_DATA).filter(function(r){return r.expiry===tomorrow;});
+  if(!alertRows.length)return;
   /* Email */
   if(s.email&&s.pubkey&&!nfAlreadySentToday()){
-    var subject='F&O Expiry Alert – '+parts.join(' | ')+' ('+today+')';
-    var body=nfBuildBody(todayRows,tomorrowRows,today,tomorrow);
+    var subject='F&O Expiry Alert – '+alertRows.length+' expiring tomorrow ('+tomorrow+')';
+    var body=nfBuildBody([],alertRows,today,tomorrow);
     await nfSendEmail(subject,body,false);
   }
   /* Telegram */
   if(s.tgtoken&&s.tgchatid&&!nfTgAlreadySentToday()){
-    var tgMsg=nfBuildTgMsg(todayRows,tomorrowRows,today,tomorrow);
+    var tgMsg=nfBuildTgMsg(alertRows,tomorrow);
     await nfSendTelegram(tgMsg,false);
   }
 }
