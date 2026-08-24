@@ -122,34 +122,70 @@ body.light .cm{color:#92400e}
   <span class="ar-info" id="arInfo"></span>
 </div>
 <!-- Notification Modal -->
-<div id="notif-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;width:min(480px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.3)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-      <h3 style="font-size:.95rem;font-weight:700;color:var(--text)">&#128276; Expiry Email Notifications</h3>
+<div id="notif-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;overflow-y:auto;padding:16px 0">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;width:min(520px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="font-size:.95rem;font-weight:700;color:var(--text)">&#128276; Expiry Notifications</h3>
       <button onclick="closeNotifModal()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--muted);line-height:1">&#10005;</button>
     </div>
-    <p style="font-size:.75rem;color:var(--muted);margin-bottom:16px;line-height:1.5">Sends an email alert <strong>1 day before</strong> and <strong>on expiry day</strong> for all expiring instruments. Powered by <a href="https://www.emailjs.com" target="_blank" style="color:var(--accent)">EmailJS</a> (free, no backend needed). <a href="https://www.emailjs.com/docs/introduction/how-does-emailjs-work/" target="_blank" style="color:var(--accent)">Setup guide ↗</a></p>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <label style="font-size:.75rem;color:var(--muted);font-weight:600">Recipient Email</label>
-      <input id="nf-email" type="email" placeholder="you@example.com" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%">
-      <label style="font-size:.75rem;color:var(--muted);font-weight:600;margin-top:4px">EmailJS Public Key <span style="font-weight:400">(from Account → API Keys)</span></label>
-      <input id="nf-pubkey" type="text" placeholder="xxxxxxxxxxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-      <label style="font-size:.75rem;color:var(--muted);font-weight:600;margin-top:4px">EmailJS Service ID <span style="font-weight:400">(Email Services tab)</span></label>
-      <input id="nf-svcid" type="text" placeholder="service_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
-      <label style="font-size:.75rem;color:var(--muted);font-weight:600;margin-top:4px">EmailJS Template ID <span style="font-weight:400">(Email Templates tab)</span></label>
-      <input id="nf-tplid" type="text" placeholder="template_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:18px">
+      <button id="nf-tab-email" onclick="nfTab('email')" style="background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px">&#128231; Email</button>
+      <button id="nf-tab-wa" onclick="nfTab('wa')" style="background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px">&#128240; WhatsApp</button>
     </div>
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:14px;font-size:.72rem;color:var(--muted);line-height:1.6">
-      <strong style="color:var(--text)">Template variables to use in EmailJS:</strong><br>
-      <code style="color:var(--accent)">{{to_email}}</code> — recipient &nbsp;
-      <code style="color:var(--accent)">{{subject}}</code> — email subject &nbsp;
-      <code style="color:var(--accent)">{{body}}</code> — full HTML table
+
+    <!-- Email Tab -->
+    <div id="nf-pane-email">
+      <p style="font-size:.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Sends an HTML email <strong>1 day before</strong> and <strong>on expiry day</strong>. Powered by <a href="https://www.emailjs.com" target="_blank" style="color:var(--accent)">EmailJS</a> (free, 200/month, no backend). <a href="https://www.emailjs.com/docs/introduction/how-does-emailjs-work/" target="_blank" style="color:var(--accent)">Setup guide ↗</a></p>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600">Recipient Email</label>
+        <input id="nf-email" type="email" placeholder="you@example.com" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">EmailJS Public Key <span style="font-weight:400">(Account → API Keys)</span></label>
+        <input id="nf-pubkey" type="text" placeholder="xxxxxxxxxxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">EmailJS Service ID <span style="font-weight:400">(Email Services tab)</span></label>
+        <input id="nf-svcid" type="text" placeholder="service_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">EmailJS Template ID <span style="font-weight:400">(Email Templates tab)</span></label>
+        <input id="nf-tplid" type="text" placeholder="template_xxxxxxx" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:.71rem;color:var(--muted);line-height:1.6">
+        <strong style="color:var(--text)">Template variables:</strong>&nbsp;
+        <code style="color:var(--accent)">{{to_email}}</code> &nbsp;
+        <code style="color:var(--accent)">{{subject}}</code> &nbsp;
+        <code style="color:var(--accent)">{{{body}}}</code> (triple braces for HTML)
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
+        <button onclick="saveNotifSettings()" style="background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
+        <button onclick="testNotifEmail()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 16px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test</button>
+        <button onclick="clearNotifSettings()" style="background:none;border:none;color:var(--red);font-size:.74rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:18px;align-items:center">
-      <button onclick="saveNotifSettings()" style="background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
-      <button onclick="testNotifEmail()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 18px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test Email</button>
-      <button onclick="clearNotifSettings()" style="background:none;border:none;color:var(--red);font-size:.75rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
+
+    <!-- WhatsApp Tab -->
+    <div id="nf-pane-wa" style="display:none">
+      <p style="font-size:.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5">Sends a WhatsApp message <strong>1 day before</strong> and <strong>on expiry day</strong>. Powered by <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" style="color:#25d366">CallMeBot</a> (free, no app install needed).</p>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:.72rem;color:#166534;line-height:1.7">
+        <strong>One-time WhatsApp setup (takes 30 seconds):</strong><br>
+        1. Add <strong>+34 644 61 57 98</strong> to your contacts as "CallMeBot"<br>
+        2. Send this message to that number on WhatsApp: <code style="background:#dcfce7;padding:1px 5px;border-radius:3px">I allow callmebot to send me messages</code><br>
+        3. You'll receive your API key in ~1 minute via WhatsApp<br>
+        4. Enter your phone number and that API key below
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600">WhatsApp Phone Number <span style="font-weight:400">(with country code, no + or spaces)</span></label>
+        <input id="nf-wa-phone" type="tel" placeholder="919876543210" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+        <label style="font-size:.74rem;color:var(--muted);font-weight:600;margin-top:2px">CallMeBot API Key <span style="font-weight:400">(received via WhatsApp)</span></label>
+        <input id="nf-wa-apikey" type="text" placeholder="1234567" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:.82rem;outline:none;width:100%;font-family:monospace">
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:.71rem;color:var(--muted);line-height:1.5">
+        &#9432; CallMeBot is free and requires no account. Messages are sent via their API which calls WhatsApp on your behalf. Limit: ~20 msgs/min.
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
+        <button onclick="saveWaSettings()" style="background:#25d366;color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Save &amp; Enable</button>
+        <button onclick="testWaMsg()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 16px;border-radius:7px;font-size:.8rem;cursor:pointer;font-family:inherit">Send Test</button>
+        <button onclick="clearWaSettings()" style="background:none;border:none;color:var(--red);font-size:.74rem;cursor:pointer;margin-left:auto;font-family:inherit">Disable &amp; Clear</button>
+      </div>
     </div>
+
     <div id="nf-status" style="margin-top:10px;font-size:.75rem;min-height:18px"></div>
   </div>
 </div>
@@ -347,40 +383,73 @@ var NF_SENT_KEY='fot_notif_sent';
 
 function nfSettings(){try{return JSON.parse(localStorage.getItem(NF_KEY)||'null');}catch(e){return null;}}
 
+function nfTab(tab){
+  var isEmail=tab==='email';
+  document.getElementById('nf-pane-email').style.display=isEmail?'block':'none';
+  document.getElementById('nf-pane-wa').style.display=isEmail?'none':'block';
+  document.getElementById('nf-tab-email').style.cssText='background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:'+(isEmail?'var(--accent)':'var(--muted)')+';border-bottom:2px solid '+(isEmail?'var(--accent)':'transparent')+';margin-bottom:-2px';
+  document.getElementById('nf-tab-wa').style.cssText='background:none;border:none;padding:7px 18px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;color:'+(!isEmail?'#25d366':'var(--muted)')+';border-bottom:2px solid '+(!isEmail?'#25d366':'transparent')+';margin-bottom:-2px';
+  document.getElementById('nf-status').textContent='';
+}
+
 function openNotifModal(){
   var s=nfSettings()||{};
   document.getElementById('nf-email').value=s.email||'';
   document.getElementById('nf-pubkey').value=s.pubkey||'';
   document.getElementById('nf-svcid').value=s.svcid||'';
   document.getElementById('nf-tplid').value=s.tplid||'';
+  document.getElementById('nf-wa-phone').value=s.waphone||'';
+  document.getElementById('nf-wa-apikey').value=s.wakey||'';
   document.getElementById('nf-status').textContent='';
+  nfTab('email');
   var m=document.getElementById('notif-modal');
   m.style.display='flex';
 }
 function closeNotifModal(){document.getElementById('notif-modal').style.display='none';}
 
 function saveNotifSettings(){
-  var s={
-    email:document.getElementById('nf-email').value.trim(),
-    pubkey:document.getElementById('nf-pubkey').value.trim(),
-    svcid:document.getElementById('nf-svcid').value.trim(),
-    tplid:document.getElementById('nf-tplid').value.trim()
-  };
+  var s=nfSettings()||{};
+  s.email=document.getElementById('nf-email').value.trim();
+  s.pubkey=document.getElementById('nf-pubkey').value.trim();
+  s.svcid=document.getElementById('nf-svcid').value.trim();
+  s.tplid=document.getElementById('nf-tplid').value.trim();
   if(!s.email||!s.pubkey||!s.svcid||!s.tplid){
     nfStatus('Please fill in all fields.','var(--red)');return;
   }
   localStorage.setItem(NF_KEY,JSON.stringify(s));
-  nfStatus('✓ Saved. Notifications enabled.','var(--green)');
+  nfStatus('✓ Email settings saved.','var(--green)');
 }
 
 function clearNotifSettings(){
-  localStorage.removeItem(NF_KEY);
+  var s=nfSettings()||{};
+  delete s.email;delete s.pubkey;delete s.svcid;delete s.tplid;
+  localStorage.setItem(NF_KEY,JSON.stringify(s));
   localStorage.removeItem(NF_SENT_KEY);
   document.getElementById('nf-email').value='';
   document.getElementById('nf-pubkey').value='';
   document.getElementById('nf-svcid').value='';
   document.getElementById('nf-tplid').value='';
-  nfStatus('Notifications disabled and cleared.','var(--muted)');
+  nfStatus('Email notifications disabled.','var(--muted)');
+}
+
+function saveWaSettings(){
+  var s=nfSettings()||{};
+  s.waphone=document.getElementById('nf-wa-phone').value.trim().replace(/\D/g,'');
+  s.wakey=document.getElementById('nf-wa-apikey').value.trim();
+  if(!s.waphone||!s.wakey){
+    nfStatus('Please fill in phone number and API key.','var(--red)');return;
+  }
+  localStorage.setItem(NF_KEY,JSON.stringify(s));
+  nfStatus('✓ WhatsApp settings saved.','#25d366');
+}
+
+function clearWaSettings(){
+  var s=nfSettings()||{};
+  delete s.waphone;delete s.wakey;
+  localStorage.setItem(NF_KEY,JSON.stringify(s));
+  document.getElementById('nf-wa-phone').value='';
+  document.getElementById('nf-wa-apikey').value='';
+  nfStatus('WhatsApp notifications disabled.','var(--muted)');
 }
 
 function nfStatus(msg,color){
@@ -470,10 +539,58 @@ function nfAlreadySentToday(){
   }catch(e){return false;}
 }
 
+function nfBuildWaMsg(todayRows,tomorrowRows,todayStr,tomorrowStr){
+  var lines=['📊 *F&O Expiry Alert*',''];
+  if(todayRows.length){
+    lines.push('📅 *Expiring Today – '+todayStr+'*');
+    todayRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
+    lines.push('');
+  }
+  if(tomorrowRows.length){
+    lines.push('⏰ *Expiring Tomorrow – '+tomorrowStr+'*');
+    tomorrowRows.forEach(function(r){lines.push('• '+r.name+' | '+r.exch+' | Lot: '+r.lot.toLocaleString('en-IN'));});
+    lines.push('');
+  }
+  lines.push('_F&O Expiry Tracker_');
+  return lines.join('\n');
+}
+
+async function nfSendWhatsApp(msg,isTest){
+  var s=nfSettings();
+  if(!s||!s.waphone||!s.wakey)return false;
+  try{
+    var url='https://api.callmebot.com/whatsapp.php?phone='+encodeURIComponent(s.waphone)+'&apikey='+encodeURIComponent(s.wakey)+'&text='+encodeURIComponent(msg);
+    var r=await fetch(url,{mode:'no-cors'});
+    /* no-cors: we can't read the response body, treat as optimistic success */
+    if(!isTest){
+      var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
+      sent['wa_'+nfDateStr(0)]=true;
+      localStorage.setItem(NF_SENT_KEY,JSON.stringify(sent));
+    }
+    return true;
+  }catch(e){console.error('WhatsApp error',e);return false;}
+}
+
+function nfWaAlreadySentToday(){
+  try{
+    var sent=JSON.parse(localStorage.getItem(NF_SENT_KEY)||'{}');
+    return !!sent['wa_'+nfDateStr(0)];
+  }catch(e){return false;}
+}
+
+async function testWaMsg(){
+  var s=nfSettings();
+  if(!s||!s.waphone||!s.wakey){nfStatus('Save WhatsApp settings first.','var(--red)');return;}
+  nfStatus('Sending test WhatsApp message…','var(--muted)');
+  var sample=[IDX_DATA[0],MCX_DATA[0],EQ_DATA[0]].filter(Boolean).map(function(r){return{name:r.name,exch:r.exch,expiry:r.expiry,lot:r.lot};});
+  var msg=nfBuildWaMsg(sample,[],nfDateStr(0),'');
+  var ok=await nfSendWhatsApp(msg,true);
+  nfStatus(ok?'✓ Test message sent! Check WhatsApp (may take a few seconds).':'✗ Failed. Check phone number and API key.',ok?'#25d366':'var(--red)');
+}
+
 async function nfCheckAndSend(){
   var s=nfSettings();
-  if(!s||!s.email||!s.pubkey)return;
-  if(nfAlreadySentToday())return;
+  if(!s)return;
   var today=nfDateStr(0),tomorrow=nfDateStr(1);
   var all=IDX_DATA.concat(EQ_DATA).concat(MCX_DATA);
   var todayRows=all.filter(function(r){return r.expiry===today;});
@@ -482,9 +599,17 @@ async function nfCheckAndSend(){
   var parts=[];
   if(todayRows.length)parts.push(todayRows.length+' expiring today');
   if(tomorrowRows.length)parts.push(tomorrowRows.length+' expiring tomorrow');
-  var subject='F&O Expiry Alert – '+parts.join(' | ')+' ('+today+')';
-  var body=nfBuildBody(todayRows,tomorrowRows,today,tomorrow);
-  await nfSendEmail(subject,body,false);
+  /* Email */
+  if(s.email&&s.pubkey&&!nfAlreadySentToday()){
+    var subject='F&O Expiry Alert – '+parts.join(' | ')+' ('+today+')';
+    var body=nfBuildBody(todayRows,tomorrowRows,today,tomorrow);
+    await nfSendEmail(subject,body,false);
+  }
+  /* WhatsApp */
+  if(s.waphone&&s.wakey&&!nfWaAlreadySentToday()){
+    var waMsg=nfBuildWaMsg(todayRows,tomorrowRows,today,tomorrow);
+    await nfSendWhatsApp(waMsg,false);
+  }
 }
 
 /* close modal on backdrop click */
