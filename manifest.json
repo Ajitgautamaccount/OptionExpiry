@@ -1,0 +1,25 @@
+{
+  "name": "F&O Expiry Tracker",
+  "short_name": "F&O Expiry",
+  "description": "Track NSE, BSE & MCX Futures and Options expiry dates with live prices and Telegram alerts",
+  "start_url": "/OptionExpiry/index.html",
+  "scope": "/OptionExpiry/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0f172a",
+  "background_color": "#0a0e1a",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

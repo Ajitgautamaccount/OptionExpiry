@@ -1,4 +1,11 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Future &amp; Options Expiry Tracker</title><style>*{box-sizing:border-box;margin:0;padding:0}
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Future &amp; Options Expiry Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="F&O Expiry">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>*{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;--text:#e2e8f0;--muted:#64748b;--accent:#3b82f6;--accent2:#60a5fa;--gold:#f59e0b;--green:#10b981;--red:#ef4444;--teal:#14b8a6;}
 body.light{--bg:#f1f5f9;--surface:#ffffff;--surface2:#e8edf5;--border:#cbd5e1;--text:#0f172a;--muted:#64748b;--accent:#2563eb;--accent2:#1d4ed8;--gold:#b45309;--green:#059669;--red:#dc2626;--teal:#0d9488;}
 html,body{height:100%}
@@ -85,13 +92,35 @@ body.light .idx-c{color:#b45309!important}
 body.light .mcx-c{color:#0f766e!important}
 body.light .el{color:#059669}
 body.light .cm{color:#92400e}
+.install-btn{background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border:none;padding:5px 14px;border-radius:8px;font-size:.75rem;cursor:pointer;font-weight:600;font-family:inherit;white-space:nowrap;display:none;align-items:center;gap:5px;transition:.15s}
+.install-btn:hover{opacity:.85;transform:scale(1.02)}
+.install-btn.show{display:inline-flex}
+.ios-install-tip{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px 20px;font-size:.8rem;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:2000;max-width:90vw;text-align:center;line-height:1.6}
+.ios-install-tip .close-tip{position:absolute;top:6px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
 @media(max-width:900px){
   .hdr-pills{display:none}
-  .body-wrap{flex-direction:column;overflow:visible;padding:8px 4%}
-  .panel{min-height:280px}
+  .hdr-text .title{font-size:1.2rem}
+  .hdr-text .sub{font-size:.85rem}
+  .hdr{padding:10px 12px;gap:10px}
+  .body-wrap{flex-direction:column;overflow:visible;padding:8px 2%;gap:10px}
+  .panel{min-height:260px}
   .lscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:visible}
-  table.mt,table.et{min-width:520px}
+  table.mt,table.et{min-width:480px}
+  table.mt td,table.et td{padding:4px 6px;font-size:.72rem}
+  table.mt thead th,table.et thead th{padding:4px 6px;font-size:.63rem}
+  .toolbar{padding:6px 10px;gap:6px}
+  .tbtn{padding:4px 9px;font-size:.7rem}
+  .sw{min-width:120px;max-width:160px}
+  #srch{padding:5px 6px 5px 26px;font-size:.72rem}
   .eq-sticky-hdr{position:static}.pg{position:static}
+  .expf-grp{margin-left:0}
+}
+@media(max-width:480px){
+  .hdr-text .title{font-size:1rem}
+  .hdr-text .sub{font-size:.72rem}
+  .body-wrap{padding:6px 1%}
+  .toolbar{flex-wrap:wrap;justify-content:center}
+  .sw{min-width:100%;max-width:100%;order:-1}
 }</style></head><body class="light"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <div class="hdr">
@@ -120,6 +149,7 @@ body.light .cm{color:#92400e}
   <button class="tbtn gr" onclick="refreshAll()">&#8635; Refresh Prices</button>
   <button class="tbtn" id="arBtn" onclick="toggleAR()">&#9711; Auto-refresh</button>
   <button class="tbtn" onclick="openNotifModal()" title="Email notification settings">&#128276; Notify</button>
+  <button class="install-btn" id="installBtn" onclick="installApp()">&#128242; Install App</button>
   <button class="tbtn" id="themeBtn" onclick="toggleTheme()" style="margin-left:auto">🌙 Dark</button>
   <span class="ar-info" id="arInfo"></span>
 </div>
@@ -623,5 +653,49 @@ async function nfCheckAndSend(){
 
 /* close modal on backdrop click */
 document.getElementById('notif-modal').addEventListener('click',function(e){if(e.target===this)closeNotifModal();});
+
+/* ── PWA Install ── */
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('installBtn').classList.add('show');
+});
+function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(c){
+      if(c.outcome==='accepted')document.getElementById('installBtn').classList.remove('show');
+      deferredPrompt=null;
+    });
+  }else{
+    var ua=navigator.userAgent||'';
+    if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document)){
+      showIosTip();
+    }else{
+      alert('To install: open this site in Chrome or Edge, then use the browser menu > "Install app" or "Add to Home Screen".');
+    }
+  }
+}
+function showIosTip(){
+  var tip=document.getElementById('ios-tip');
+  if(tip){tip.style.display='block';return;}
+  tip=document.createElement('div');tip.id='ios-tip';tip.className='ios-install-tip';tip.style.display='block';
+  tip.innerHTML='<button class="close-tip" onclick="this.parentElement.style.display=\'none\'">&times;</button>'
+    +'<strong>Install on iOS</strong><br>Tap the <b>Share</b> button <span style="font-size:1.1em">&#9757;</span> at the bottom of Safari,<br>then tap <b>"Add to Home Screen"</b>';
+  document.body.appendChild(tip);
+}
+window.addEventListener('appinstalled',function(){document.getElementById('installBtn').classList.remove('show');});
+/* Show install button on iOS even without beforeinstallprompt */
+(function(){
+  var ua=navigator.userAgent||'';
+  var isIos=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document);
+  var isStandalone=window.navigator.standalone||window.matchMedia('(display-mode:standalone)').matches;
+  if(isIos&&!isStandalone)document.getElementById('installBtn').classList.add('show');
+})();
+/* Service Worker registration */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW registration failed:',e);});
+}
 
 window.onload=function(){init();nfCheckAndSend();};</script></body></html>
