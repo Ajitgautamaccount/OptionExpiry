@@ -9,8 +9,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .hdr-text .sub{font-size:1.3rem;font-weight:600;margin-top:2px;background:linear-gradient(90deg,transparent 0%,#9ca3af 30%,#e5e7eb 50%,#9ca3af 70%,transparent 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s linear infinite}
 @keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
 .hdr-pills{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
-.pill{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;padding:3px 11px;font-size:.68rem;display:flex;align-items:center;gap:5px}
+.pill{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:20px;padding:3px 11px;font-size:.68rem;display:flex;align-items:center;gap:5px;color:#e2e8f0}
 .pill .pv{font-weight:700;color:var(--accent2)}
+body.light .pill{background:rgba(0,0,0,.06);border:1px solid #94a3b8;color:#1e293b}
+body.light .pill .pv{color:#1d4ed8}
 .toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0}
 .sw{position:relative;min-width:160px;max-width:220px;flex:1}
 .sw svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--muted)}
@@ -293,7 +295,7 @@ function init(){
   [IDX_DATA,EQ_DATA,MCX_DATA].forEach(function(a){a.forEach(function(r){r.lot=parseInt(r.lot)||0;r.lp=parseFloat(r.lp)||0;});});
   /* build futLp map: und -> FUT baked lp, so MCX OPT margin can use FUT price */
   MCX_DATA.forEach(function(r){if(r.type==='FUT'&&r.lp>0)futLp[r.und]=r.lp;});
-  S.idx.data=IDX_DATA.slice();S.mcx.data=MCX_DATA.slice();S.eq.data=EQ_DATA.slice();
+  S.idx.data=IDX_DATA.slice();S.mcx.data=MCX_DATA.filter(function(r){return r.type!=='FUT';});S.eq.data=EQ_DATA.slice();
   setExpF('today');
 }
 function expiryOk(expiry){
@@ -571,7 +573,8 @@ async function testWaMsg(){
   var s=nfSettings();
   if(!s||!s.tgtoken||!s.tgchatid){nfStatus('Save Telegram settings first.','var(--red)');return;}
   nfStatus('Sending test daily message…','var(--muted)');
-  var sample=(IDX_DATA.slice(0,2).concat(MCX_DATA.slice(0,2))).filter(Boolean);
+  var mcxOpt=MCX_DATA.filter(function(r){return r.type!=='FUT';});
+  var sample=(IDX_DATA.slice(0,2).concat(mcxOpt.slice(0,2))).filter(Boolean);
   var msg=nfBuildTgMsg(sample,nfDateStr(1));
   var res=await nfSendTelegram(msg,true);
   nfResultStatus(res,'Daily test');
@@ -581,7 +584,8 @@ async function testWeeklyMsg(){
   var s=nfSettings();
   if(!s||!s.tgtoken||!s.tgchatid){nfStatus('Save Telegram settings first.','var(--red)');return;}
   nfStatus('Sending test weekly message…','var(--muted)');
-  var sample=(IDX_DATA.slice(0,3).concat(MCX_DATA.slice(0,3))).filter(Boolean);
+  var mcxOpt=MCX_DATA.filter(function(r){return r.type!=='FUT';});
+  var sample=(IDX_DATA.slice(0,3).concat(mcxOpt.slice(0,3))).filter(Boolean);
   var msg=nfBuildWeeklyTgMsg(sample);
   if(!msg){nfStatus('No sample data available.','var(--muted)');return;}
   var res=await nfSendTelegram(msg,true);
@@ -592,7 +596,8 @@ async function nfCheckAndSend(){
   var s=nfSettings();
   if(!s)return;
   var today=nfDateStr(0),tomorrow=nfDateStr(1);
-  var allIdxMcx=IDX_DATA.concat(MCX_DATA);
+  var mcxOpt=MCX_DATA.filter(function(r){return r.type!=='FUT';});
+  var allIdxMcx=IDX_DATA.concat(mcxOpt);
 
   /* ── Weekly alert on Monday ── */
   if(new Date().getDay()===1&&s.tgtoken&&s.tgchatid&&!nfWeeklyAlreadySent()){
