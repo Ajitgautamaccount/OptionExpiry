@@ -274,9 +274,14 @@ function computeExpiries(){
   MCX_DATA.forEach(function(r){
     var sfx=r.type||'FUT';
     if(r.und==='CRUDEOIL'||r.und==='CRUDEOILM'){
-      var nm=m+1,ny=y;if(nm>11){nm=0;ny++;}
-      r.expiry=fmtDate(nearBizDay(ny,nm,17));
-      r.sym=r.name+String(ny).slice(-2)+MONTH_ABBR[nm]+sfx;
+      if(r.type==='OPT'){
+        r.expiry=fmtDate(nearBizDay(y,m,17));
+        r.sym=r.name+yy+mon+sfx;
+      }else{
+        var nm=m+1,ny=y;if(nm>11){nm=0;ny++;}
+        r.expiry=fmtDate(nearBizDay(ny,nm,17));
+        r.sym=r.name+String(ny).slice(-2)+MONTH_ABBR[nm]+sfx;
+      }
     }else if(r.und==='NATURALGAS'||r.und==='NATGASMINI'){
       r.expiry=r.type==='OPT'?metlExp:ngExp;
       r.sym=r.name+yy+mon+sfx;
