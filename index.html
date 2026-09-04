@@ -213,6 +213,73 @@ var pCache={};var arOn=false,arT=null;var expF='today';
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function weekEndStr(){var d=new Date();var dow=d.getDay();var diff=dow===0?0:7-dow;var e=new Date(d);e.setDate(d.getDate()+diff);return e.getFullYear()+'-'+String(e.getMonth()+1).padStart(2,'0')+'-'+String(e.getDate()).padStart(2,'0');}
 function monthStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+var MONTH_ABBR=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function lastWeekday(year,month,dow){var d=new Date(year,month+1,0);while(d.getDay()!==dow)d.setDate(d.getDate()-1);return d;}
+function allWeekdays(year,month,dow){var r=[],d=new Date(year,month,1);while(d.getDay()!==dow)d.setDate(d.getDate()+1);while(d.getMonth()===month){r.push(new Date(d));d.setDate(d.getDate()+7);}return r;}
+function lastBizDay(year,month){var d=new Date(year,month+1,0);while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()-1);return d;}
+function nearBizDay(year,month,target){var last=new Date(year,month+1,0).getDate();var d=new Date(year,month,Math.min(target,last));while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()-1);return d;}
+function computeExpiries(){
+  var now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  var curYM=y+'-'+String(m+1).padStart(2,'0');
+  var sampleNfo=IDX_DATA.find(function(r){return r.exch==='NFO';});
+  if(sampleNfo&&sampleNfo.expiry.slice(0,7)===curYM)return;
+  var yy=String(y).slice(-2),mon=MONTH_ABBR[m];
+  var nfoExp=fmtDate(lastWeekday(y,m,4));
+  var bfoExp=fmtDate(lastWeekday(y,m,2));
+  var mcxLast=fmtDate(lastBizDay(y,m));
+  var ngExp=fmtDate(nearBizDay(y,m,26));
+  var idxExp=fmtDate(nearBizDay(y,m,28));
+  var metlExp=fmtDate(nearBizDay(y,m,24));
+  IDX_DATA.forEach(function(r){
+    r.expiry=r.exch==='BFO'?bfoExp:nfoExp;
+    r.sym=r.name+yy+mon+'FUT';
+  });
+  EQ_DATA.forEach(function(r){
+    r.expiry=nfoExp;
+    r.sym=r.name+yy+mon+'FUT';
+  });
+  MCX_DATA.forEach(function(r){
+    var sfx=r.type||'FUT';
+    if(r.und==='CRUDEOIL'||r.und==='CRUDEOILM'){
+      var nm=m+1,ny=y;if(nm>11){nm=0;ny++;}
+      r.expiry=fmtDate(nearBizDay(ny,nm,17));
+      r.sym=r.name+String(ny).slice(-2)+MONTH_ABBR[nm]+sfx;
+    }else if(r.und==='NATURALGAS'||r.und==='NATGASMINI'){
+      r.expiry=r.type==='OPT'?metlExp:ngExp;
+      r.sym=r.name+yy+mon+sfx;
+    }else if(r.und==='ELECDMBL'||r.und==='MCXBULLDEX'){
+      r.expiry=idxExp;
+      r.sym=r.name+yy+mon+sfx;
+    }else if(r.und==='MCXMETLDEX'){
+      r.expiry=metlExp;
+      r.sym=r.name+yy+mon+sfx;
+    }else if(r.type==='OPT'&&['COPPER','ZINC','ZINCMINI','SILVERM'].indexOf(r.und)>=0){
+      r.expiry=metlExp;
+      r.sym=r.name+yy+mon+sfx;
+    }else if(r.type==='OPT'&&['SILVER','GOLDM'].indexOf(r.und)>=0){
+      r.expiry=idxExp;
+      r.sym=r.name+yy+mon+sfx;
+    }else{
+      r.expiry=mcxLast;
+      r.sym=r.name+yy+mon+sfx;
+    }
+  });
+  var thurs=allWeekdays(y,m,4).map(fmtDate);
+  var nm2=m+1,ny2=y;if(nm2>11){nm2=0;ny2++;}
+  var nextExp=fmtDate(lastWeekday(ny2,nm2,4));
+  Object.keys(WKLY).forEach(function(sym){
+    if(sym==='NIFTY'||sym==='BANKNIFTY'||sym==='FINNIFTY'){
+      WKLY[sym]=thurs.concat([nextExp]);
+    }else{
+      WKLY[sym]=[nfoExp,nextExp];
+    }
+  });
+  EXPIRY_DATES.length=0;
+  var allExp={};
+  [IDX_DATA,EQ_DATA,MCX_DATA].forEach(function(a){a.forEach(function(r){if(r.expiry)allExp[r.expiry]=true;});});
+  Object.keys(allExp).sort().forEach(function(d){EXPIRY_DATES.push(d);});
+}
 function setExpF(mode){
   expF=mode;
   ['today','week','month'].forEach(function(m){var b=document.getElementById('ef-'+m);if(b){b.classList.toggle('on',m===mode);}});
@@ -222,6 +289,7 @@ var MO=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 function fD(s){if(!s)return'';var p=s.split('-');return p[2]+'-'+MO[+p[1]];}
 function fN(v){return v>0?v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
 function init(){
+  computeExpiries();
   [IDX_DATA,EQ_DATA,MCX_DATA].forEach(function(a){a.forEach(function(r){r.lot=parseInt(r.lot)||0;r.lp=parseFloat(r.lp)||0;});});
   /* build futLp map: und -> FUT baked lp, so MCX OPT margin can use FUT price */
   MCX_DATA.forEach(function(r){if(r.type==='FUT'&&r.lp>0)futLp[r.und]=r.lp;});
